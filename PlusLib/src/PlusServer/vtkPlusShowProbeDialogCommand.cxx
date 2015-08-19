@@ -155,12 +155,11 @@ PlusStatus vtkPlusShowProbeDialogCommand::Execute()
   {
     if (conoProbeDevice->ShowProbeDialog())
     {
-      this->QueueStringResponse(std::string("Success!"), PLUS_SUCCESS);
+      this->QueueStringResponse(std::string("Probe Dialog open."), PLUS_SUCCESS);
       return PLUS_SUCCESS;
     }
-    // Already showing probe dialog
-    //this->QueueStringResponse(responseMessageBase + " successful", PLUS_FAIL);
-    //return PLUS_FAIL;
+    this->QueueStringResponse(responseMessageBase, PLUS_FAIL);
+    return PLUS_FAIL;
   }
 
   this->QueueStringResponse(responseMessageBase + " unknown command: " + this->Name,PLUS_FAIL);
