@@ -4,7 +4,7 @@ Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
 See License.txt for details.
 =========================================================Plus=header=end*/
 
-/*=========================================================================
+/*========================================================================
 Date: Ag 2015
 Authors include:
 - Eugenio Marinetto [*][ç] emarinetto@hggm.es
@@ -14,7 +14,7 @@ Authors include:
 - Javier Pascau [*][ç] jpascau@hggm.es
 [*] Laboratorio de Imagen Medica, Hospital Gregorio Maranon - http://image.hggm.es/
 [ç] Departamento de Bioingeniería e Ingeniería Aeroespacial. Universidad Carlos III de Madrid
-=========================================================================*/
+==========================================================================*/
 
 #ifndef __vtkOptiTrackTracker_h
 #define __vtkOptiTrackTracker_h

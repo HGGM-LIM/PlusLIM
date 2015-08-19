@@ -241,6 +241,12 @@ PlusStatus vtkOptimetConoProbeMeasurer::SetFrequency(int frequency)
 }
 
 //----------------------------------------------------------------------------
+PlusStatus vtkOptimetConoProbeMeasurer::ShowProbeDialog()
+{
+	return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
 unsigned short vtkOptimetConoProbeMeasurer::GetCompositeLaserPower()
 {
   unsigned short compositeLaserPower = this->CoarseLaserPower;
