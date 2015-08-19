@@ -1,0 +1,50 @@
+<PlusConfiguration version="2.1">
+
+  <DataCollection StartupDelaySec="1.0">
+    <DeviceSet
+      Name="PlusServer: OptiTrack"
+      Description="Broadcasting tracking data through OpenIGTLink."
+    />
+    <Device
+      Id="TrackerDevice"
+      Type="OptiTrack"
+      ToolReferenceFrame="Tracker"
+      AcquisitionRate="100"
+      LocalTimeOffsetSec="0"
+      CalibrationFile="PATH_TO/Calibration.cal"
+      Exposition="7"
+      Threshold="200"
+      Illumination="14"
+      >
+      <DataSources>
+        <DataSource Type="Tool" Id="PolarisPointerTip" ConfFile="PATH_TO/PolarisPointerTipXML.xml"  />
+        <DataSource Type="Tool" Id="RigidBody" ConfFile="PATH_TO/RigidBodyXML.xml"  />
+      </DataSources>
+      <OutputChannels>
+        <OutputChannel Id="TrackerStream">
+          <DataSource Id="PolarisPointer" />
+          <DataSource Id="RigidBody" />
+        </OutputChannel>
+      </OutputChannels>
+    </Device>
+
+  </DataCollection>
+
+  <PlusOpenIGTLinkServer
+    MaxNumberOfIgtlMessagesToSend="1"
+    MaxTimeSpentWithProcessingMs="50"
+    ListeningPort="18944"
+    SendValidTransformsOnly="true"
+    OutputChannelId="TrackerStream" >
+    <DefaultClientInfo>
+      <MessageTypes>
+        <Message Type="TRANSFORM" />
+      </MessageTypes>
+      <TransformNames>
+        <Transform Name="PolarisPointerTipToTracker" />
+        <Transform Name="RigidBodyToTracker" />
+      </TransformNames>
+    </DefaultClientInfo>
+  </PlusOpenIGTLinkServer>
+
+</PlusConfiguration>
