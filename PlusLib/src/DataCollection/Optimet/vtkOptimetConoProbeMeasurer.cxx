@@ -254,6 +254,8 @@ PlusStatus vtkOptimetConoProbeMeasurer::ShowProbeDialog()
   p.Power = this->CoarseLaserPower;
   p.FinePower = this->FineLaserPower;
   p.Frequency = this->Frequency;
+  p.DlgProc = NULL;
+
 
   try
   {

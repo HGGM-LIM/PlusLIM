@@ -16,7 +16,7 @@ See License.txt for details.
   #include "vtkPlusStealthLinkCommand.h"
 #endif
 #ifdef PLUS_USE_OPTIMET_CONOPROBE
-  #include "vtkPlusShowProbeDialogCommand.h"
+  #include "vtkPlusConoProbeLinkCommand.h"
 #endif
 #include "vtkPlusRequestIdsCommand.h"
 #include "vtkPlusSaveConfigCommand.h"
@@ -47,7 +47,7 @@ vtkPlusCommandProcessor::vtkPlusCommandProcessor()
   RegisterPlusCommand(vtkSmartPointer<vtkPlusStealthLinkCommand>::New());
 #endif
 #ifdef PLUS_USE_OPTIMET_CONOPROBE
-  RegisterPlusCommand(vtkSmartPointer<vtkPlusShowProbeDialogCommand>::New());
+  RegisterPlusCommand(vtkSmartPointer<vtkPlusConoProbeLinkCommand>::New());
 #endif
 }
 

@@ -40,9 +40,9 @@ IF (PLUS_USE_STEALTHLINK)
 ENDIF(PLUS_USE_STEALTHLINK)
 
 IF (PLUS_USE_OPTIMET_CONOPROBE)
-  SET (PlusServer_SRCS  ${PlusServer_SRCS} vtkPlusShowProbeDialogCommand.cxx)
+  SET (PlusServer_SRCS  ${PlusServer_SRCS} vtkPlusConoProbeLinkCommand.cxx)
   IF (WIN32)
-    SET (PlusServer_HDRS ${PlusServer_HDRS} vtkPlusShowProbeDialogCommand.h)
+    SET (PlusServer_HDRS ${PlusServer_HDRS} vtkPlusConoProbeLinkCommand.h)
   ENDIF (WIN32)
 ENDIF(PLUS_USE_OPTIMET_CONOPROBE)
 
