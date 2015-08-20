@@ -256,7 +256,6 @@ PlusStatus vtkOptimetConoProbeMeasurer::ShowProbeDialog()
   p.Frequency = this->Frequency;
   p.DlgProc = NULL;
 
-
   try
   {
 	ISmart::ShowProbeDialog(&this->ConoProbe, 1, &p, &r);
