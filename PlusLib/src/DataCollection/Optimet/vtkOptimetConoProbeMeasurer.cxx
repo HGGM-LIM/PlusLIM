@@ -8,16 +8,18 @@ See License.txt for details.
 #include "vtkOptimetConoProbeMeasurer.h"
 
 #include "PlusMath.h"
+
 #include "vtkMath.h"
 #include "vtkMatrix4x4.h"
+#include "vtkMultiThreader.h"
 #include "vtkObjectFactory.h"
 #include "vtkPlusDataSource.h"
 #include "vtkTransform.h"
 #include "vtkXMLDataElement.h"
 #include "vtksys/SystemTools.hxx"
+
 #include <math.h>
 #include <sstream>
-
 #include <stdio.h>
 #include <conio.h>
 #include <stdlib.h>
@@ -46,12 +48,22 @@ vtkOptimetConoProbeMeasurer::vtkOptimetConoProbeMeasurer()
   this->CoarseLaserPower = 13;
   this->FineLaserPower = 0;
 
+  // Thread
+  this->Thread = vtkMultiThreader::New();
+  this->ThreadID = -1;
+
   this->StartThreadForInternalUpdates=true; 
 }
 
 //-------------------------------------------------------------------------
 vtkOptimetConoProbeMeasurer::~vtkOptimetConoProbeMeasurer() 
 {
+  this->Stop();
+  if (this->Thread)
+  {
+    this->Thread->Delete();
+  }
+
   this->MeasurementTool = NULL;
   if (this->ConoProbe)
   {
@@ -266,6 +278,39 @@ PlusStatus vtkOptimetConoProbeMeasurer::ShowProbeDialog()
 	return PLUS_FAIL;
   }
   return PLUS_SUCCESS;
+}
+
+//---------------------------------------------------------------------------
+PlusStatus vtkOptimetConoProbeMeasurer::Start()
+{
+	if (this->ThreadID >= 0)
+	{
+		return PLUS_FAIL;
+	}
+	this->ThreadID = this->Thread->SpawnThread((vtkThreadFunctionType)&vtkOptimetConoProbeMeasurer::ProbeDialogThread, this);
+
+	return PLUS_SUCCESS;
+}
+
+//---------------------------------------------------------------------------
+PlusStatus vtkOptimetConoProbeMeasurer::Stop()
+{
+	if (this->ThreadID >= 0)
+	{
+		this->Thread->TerminateThread(this->ThreadID);
+		this->ThreadID = -1;
+		return PLUS_SUCCESS;
+	}
+	else
+	{
+		return PLUS_FAIL;
+	}
+}
+
+//----------------------------------------------------------------------------
+void* vtkOptimetConoProbeMeasurer::ProbeDialogThread(void* ptr)
+{
+	return NULL;
 }
 
 //----------------------------------------------------------------------------

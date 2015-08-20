@@ -33,6 +33,7 @@ Requires PLUS_USE_OPTIMET_CONOPROBE option in CMake.
 \ingroup PlusLibDataCollection
 */
 
+class vtkMultiThreader;
 class ISmart;
 
 class vtkDataCollectionExport vtkOptimetConoProbeMeasurer : public vtkPlusDevice
@@ -63,6 +64,12 @@ public:
   /*! Opens the Probe Dialog. */
   PlusStatus ShowProbeDialog();
 
+  /*! ... */
+  PlusStatus Start();
+
+  /*! ... */
+  PlusStatus Stop();
+
 protected:
 
   vtkOptimetConoProbeMeasurer();
@@ -72,12 +79,14 @@ protected:
   PlusStatus InternalUpdate();
 
 private:  // Functions.
-
   vtkOptimetConoProbeMeasurer( const vtkOptimetConoProbeMeasurer& );
   void operator=( const vtkOptimetConoProbeMeasurer& );
 
   /*! Get composite laser power. */
   unsigned short GetCompositeLaserPower();  
+
+  /*! ... */
+  static void* ProbeDialogThread(void* ptr);
 
 private:  // Variables.
 
@@ -100,6 +109,12 @@ private:  // Variables.
 
   /*! Fine laser power. */
   unsigned short FineLaserPower;
+
+  /*! ... */
+  vtkMultiThreader* Thread;
+
+  /*! ... */
+  int ThreadID;
 };
 
 #endif
