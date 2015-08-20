@@ -29,7 +29,10 @@ OPTION (PLUS_TEST_ULTRASONIX "Enable testing of acquisition from Ultrasonix ultr
 IF (PLUS_TEST_ULTRASONIX)
   SET (PLUS_TEST_ULTRASONIX_IP_ADDRESS "127.0.0.1" CACHE STRING "IP address of the Ultrasonix scanner that is used during testing")
 ENDIF()
-OPTION (PLUS_TEST_MMF_VIDEO "Enable testing of acquisition from the first available Microsoft Media Foundation compatible device. Turn off if no such device is available or the first device does not have any Plus-compatible video mode." ON)
+OPTION(PLUS_USE_MMF_VIDEO "Provide support for the Microsoft Media Foundation video digitizers (requires installation of Windows Platform SDK 7.1 or later)" OFF)
+IF(PLUS_USE_MMF_VIDEO)
+  OPTION(PLUS_TEST_MMF_VIDEO "Enable testing of acquisition from MMF video device (webcam). Enable this only if an MMF device is connected to this computer." OFF)  
+ENDIF(PLUS_USE_MMF_VIDEO)
 
 SET (DataCollection_INCLUDE_DIRS "" CACHE INTERNAL "" FORCE)
 
@@ -99,35 +102,42 @@ SET (DataCollection_INCLUDE_DIRS
   ${CMAKE_CURRENT_SOURCE_DIR}/VirtualDevices  
   CACHE INTERNAL "" FORCE)
 
+# --------------------------------------------------------------------------
+# OptiTrack support
 IF (PLUS_USE_OPTITRACK)
-  IF (WIN32)
-
-    # PlusLib Files
-    SET (DataCollection_SRCS ${DataCollection_SRCS}
-    OptiTrack/vtkOptiTrackTracker.cxx
-    )
-
-    SET (DataCollection_HDRS ${DataCollection_HDRS}
-    OptiTrack/vtkOptiTrackTracker.h
-    )
-
+    SET (DataCollection_SRCS ${DataCollection_SRCS} 
+      OptiTrack/vtkOptiTrackTracker.cxx
+      )
+        
+    SET (DataCollection_INCLUDE_DIRS ${DataCollection_INCLUDE_DIRS} ${TRACKINGTOOLS_INCLUDE_DIR} CACHE INTERNAL "" FORCE )
+  
+    IF (WIN32)  
+      SET (DataCollection_HDRS ${DataCollection_HDRS}
+        OptiTrack/vtkOptiTrackTracker.h
+        )
+    ENDIF (WIN32)
+    
     SET (DataCollection_INCLUDE_DIRS ${DataCollection_INCLUDE_DIRS}
-    ${CMAKE_CURRENT_SOURCE_DIR}/OptiTrack
-    CACHE INTERNAL "" FORCE)
-
-    # Find BiiGOptitrackControl Library
-    find_package (BiiGOptitrackControl REQUIRED PATHS "${NPTrackingTools_DIR}/BiiGOptitrackControl-build" NO_DEFAULT_PATH)
-    set( External_Libraries_Install ${External_Libraries_Install} ${NPTrackingTools_DIR}/install/bin/BiiGOptitrackControl${CMAKE_SHARED_LIBRARY_SUFFIX})
-    set( External_Libraries_Install ${External_Libraries_Install} ${NPTrackingTools_DIR}/install/lib/BiiGOptitrackControl${CMAKE_STATIC_LIBRARY_SUFFIX})
-
-    # Find NPTrackingTools Library
-    find_package(NPTrackingTools REQUIRED PATHS "${NPTrackingTools_DIR}/NPTrackingTools-build" NO_DEFAULT_PATH)
-    set( External_Libraries_Install ${External_Libraries_Install} ${NPTrackingTools_LIBRARY_DIR}/${NPTrackingTools_LIBRARY}${CMAKE_SHARED_LIBRARY_SUFFIX})
-    set( External_Libraries_Install ${External_Libraries_Install} ${NPTrackingTools_LIBRARY_DIR}/${NPTrackingTools_LIBRARY}${CMAKE_STATIC_LIBRARY_SUFFIX})
-    set(DataCollection_INCLUDE_DIRS ${DataCollection_INCLUDE_DIRS} ${NPTrackingTools_INCLUDE_DIR} CACHE INTERNAL "" FORCE )
-
-    set(DataCollection_LIBS ${DataCollection_LIBS} BiiGOptitrackControl ${NPTrackingTools_LIBRARY})
-  ENDIF (WIN32)
+         ${CMAKE_CURRENT_SOURCE_DIR}/OptiTrack 
+         CACHE INTERNAL "" FORCE)
+      
+    IF( CMAKE_SIZEOF_VOID_P EQUAL 8 )
+    # 64-bit
+		SET (DataCollection_LIBS ${DataCollection_LIBS}
+		${TRACKINGTOOLS_64_BIT_LIBRARY}
+		)
+		SET ( External_Libraries_Install ${External_Libraries_Install}
+		${TRACKINGTOOLS_BINARY_DIR}/NPTrackingToolsx64${CMAKE_SHARED_LIBRARY_SUFFIX}
+		)
+	ELSE()
+    # 32-bit
+		SET (DataCollection_LIBS ${DataCollection_LIBS}
+		${TRACKINGTOOLS_32_BIT_LIBRARY}
+		)
+		SET ( External_Libraries_Install ${External_Libraries_Install}
+		${TRACKINGTOOLS_BINARY_DIR}/NPTrackingTools${CMAKE_SHARED_LIBRARY_SUFFIX}
+		)
+  ENDIF()   
 ENDIF (PLUS_USE_OPTITRACK)
 
 # --------------------------------------------------------------------------
