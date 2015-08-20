@@ -151,7 +151,6 @@ IF (PLUS_USE_OPTIMET_CONOPROBE)
       
 	SET (DataCollection_LIBS ${DataCollection_LIBS}
 	${OPTIMETSMART32SDK_LIBRARY}
-	${OPTIMETSMART32SDK_FIFO_LIBRARY}
 	)
 
 	SET ( External_Libraries_Install ${External_Libraries_Install}
@@ -160,10 +159,6 @@ IF (PLUS_USE_OPTIMET_CONOPROBE)
 	SET ( External_Libraries_Install ${External_Libraries_Install}
 	${OPTIMETSMART32SDK_BINARY_DIR}/NewProbeDialog${CMAKE_SHARED_LIBRARY_SUFFIX}
 	)
-	SET ( External_Libraries_Install ${External_Libraries_Install}
-	${OPTIMETSMART32SDK_BINARY_DIR}/Fifo${CMAKE_SHARED_LIBRARY_SUFFIX}
-	)
-      
 ENDIF (PLUS_USE_OPTIMET_CONOPROBE)
 
 # --------------------------------------------------------------------------
