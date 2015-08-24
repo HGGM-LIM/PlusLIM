@@ -44,9 +44,11 @@ vtkOptimetConoProbeMeasurer::vtkOptimetConoProbeMeasurer()
   this->LensOriginAlignment[4] = 1.0;
   this->LensOriginAlignment[5] = 1.0;
   this->DelayBetweenMeasurements = 1;
-  this->Frequency= 1000;
+  this->Frequency= 100;
   this->CoarseLaserPower = 13;
   this->FineLaserPower = 0;
+  this->ProbeDialogOpen = false;
+  this->LaserPower = 0;
 
   // Thread
   this->Thread = vtkMultiThreader::New();
@@ -97,8 +99,9 @@ PlusStatus vtkOptimetConoProbeMeasurer::InternalConnect()
 
   try
   {
-	  // Set acquisition parameters
-    this->ConoProbe->SetAcquisitionParams(AcquisitionMode::TimeAcquisitionMode, this->Frequency, this->GetCompositeLaserPower(), this->DelayBetweenMeasurements);
+	// Set acquisition parameters
+	  this->ConoProbe->SetAcquisitionParams(AcquisitionMode::TimeAcquisitionMode, this->Frequency, this->CalculateCompositeLaserPower(this->CoarseLaserPower, this->FineLaserPower), this->DelayBetweenMeasurements);
+	  this->SetLaserPower(this->CalculateCompositeLaserPower(this->CoarseLaserPower, this->FineLaserPower));
   }
   catch (const SmartException& e)
   {
@@ -133,38 +136,51 @@ PlusStatus vtkOptimetConoProbeMeasurer::InternalUpdate()
   
   if (this->MeasurementTool != NULL)
   {
-    Measurement measurement;
-    try
-    {
-      // Get ConoProbe measurement and write to MeasurementToMeasurerTransform
-	    measurement = this->ConoProbe->GetSingleMeasurement();  
-    }
-    catch (const SmartException& e)
-    {
-      LOG_ERROR(e.ErrorString());
-      return PLUS_FAIL;
-    }
-    catch (const SmartExceptionBadResponse& e)
-    {
-      LOG_WARNING(e.MessageType());
-    }
-
-	// Get distance (mm), Snr (%), Total, and set correct lens origin parameters
-	double d = measurement.Distance;
-	double snr = measurement.Snr / 10;
-	double total = measurement.Total;
-	double dx = this->LensOriginAlignment[0];
-	double dy = this->LensOriginAlignment[1];
-	double dz = this->LensOriginAlignment[2];
-	double lx = this->LensOriginAlignment[3];
-	double ly = this->LensOriginAlignment[4];
-	double lz = this->LensOriginAlignment[5];
-
-	// Create transforms
 	vtkSmartPointer<vtkTransform> measurementToMeasurerTransform = vtkSmartPointer<vtkTransform>::New();
-	measurementToMeasurerTransform->Translate(dx * d + lx, dy * d + ly, dz * d + lz);
 	vtkSmartPointer<vtkTransform> parametersToMeasurerTransform = vtkSmartPointer<vtkTransform>::New();
-	parametersToMeasurerTransform->Translate(d, snr, total);
+
+	if (!this->ProbeDialogOpen)
+	{
+		Measurement measurement;
+		try
+		{
+			// Get ConoProbe measurement and write to MeasurementToMeasurerTransform
+			measurement = this->ConoProbe->GetSingleMeasurement();
+		}
+		catch (const SmartException& e)
+		{
+			LOG_ERROR(e.ErrorString());
+			return PLUS_FAIL;
+		}
+		catch (const SmartExceptionBadResponse& e)
+		{
+			LOG_WARNING(e.MessageType());
+		}
+
+		// Get distance (mm), Snr (%), Total, and set correct lens origin parameters
+		double d = measurement.Distance;
+		double snr = measurement.Snr / 10;
+		double total = measurement.Total;
+		double dx = this->LensOriginAlignment[0];
+		double dy = this->LensOriginAlignment[1];
+		double dz = this->LensOriginAlignment[2];
+		double lx = this->LensOriginAlignment[3];
+		double ly = this->LensOriginAlignment[4];
+		double lz = this->LensOriginAlignment[5];
+
+		// Create transforms
+		measurementToMeasurerTransform->Translate(dx * d + lx, dy * d + ly, dz * d + lz);
+		double params[16]{ d, snr, total, 0.0,
+						   this->Frequency, this->LaserPower, 0.0, 0.0,
+				           0.0, 0.0, 0.0, 0.0,
+					       0.0, 0.0, 0.0, 0.0, };
+		parametersToMeasurerTransform->SetMatrix(params);
+	}
+	else
+	{
+		measurementToMeasurerTransform->Identity();
+		parametersToMeasurerTransform->Identity();
+	}
 
 	// Create frame number and time stamp
 	unsigned long frameNumber = this->MeasurementTool->GetFrameNumber() + 1 ;
@@ -246,48 +262,16 @@ PlusStatus vtkOptimetConoProbeMeasurer::WriteConfiguration(vtkXMLDataElement* ro
   return PLUS_SUCCESS;
 }
 
-//----------------------------------------------------------------------------
-PlusStatus vtkOptimetConoProbeMeasurer::SetFrequency(int frequency)
-{
-  return PLUS_SUCCESS;
-}
-
-//----------------------------------------------------------------------------
-PlusStatus vtkOptimetConoProbeMeasurer::ShowProbeDialog()
-{
-  ProbeDialogParams p;
-  ProbeDialogResult r;
-
-  ZeroMemory(&p, sizeof (ProbeDialogParams));
-  ZeroMemory(&r, sizeof (ProbeDialogResult));
-
-  p.DlgProc = NULL;
-  p.Units = MMUnits;
-  p.Power = this->CoarseLaserPower;
-  p.FinePower = this->FineLaserPower;
-  p.Frequency = this->Frequency;
-  p.DlgProc = NULL;
-
-  try
-  {
-	ISmart::ShowProbeDialog(&this->ConoProbe, 1, &p, &r);
-  }
-  catch (const SmartException& e)
-  {
-	LOG_ERROR(e.ErrorString());
-	return PLUS_FAIL;
-  }
-  return PLUS_SUCCESS;
-}
-
 //---------------------------------------------------------------------------
 PlusStatus vtkOptimetConoProbeMeasurer::Start()
 {
-	if (this->ThreadID >= 0)
+	if (this->ThreadID == 0)
 	{
 		return PLUS_FAIL;
 	}
-	this->ThreadID = this->Thread->SpawnThread((vtkThreadFunctionType)&vtkOptimetConoProbeMeasurer::ProbeDialogThread, this);
+	this->ProbeDialogOpen = true;
+	this->ThreadID = 0;
+	this->Thread->SpawnThread((vtkThreadFunctionType)&vtkOptimetConoProbeMeasurer::ProbeDialogThread, this);
 
 	return PLUS_SUCCESS;
 }
@@ -295,10 +279,12 @@ PlusStatus vtkOptimetConoProbeMeasurer::Start()
 //---------------------------------------------------------------------------
 PlusStatus vtkOptimetConoProbeMeasurer::Stop()
 {
-	if (this->ThreadID >= 0)
+	if (this->ThreadID == 0)
 	{
-		this->Thread->TerminateThread(this->ThreadID);
 		this->ThreadID = -1;
+		this->ProbeDialogOpen = false;
+		this->Thread->TerminateThread(0);
+		
 		return PLUS_SUCCESS;
 	}
 	else
@@ -310,14 +296,38 @@ PlusStatus vtkOptimetConoProbeMeasurer::Stop()
 //----------------------------------------------------------------------------
 void* vtkOptimetConoProbeMeasurer::ProbeDialogThread(void* ptr)
 {
+	vtkMultiThreader::ThreadInfo* vinfo = static_cast<vtkMultiThreader::ThreadInfo*>(ptr);
+	vtkOptimetConoProbeMeasurer* logic = reinterpret_cast<vtkOptimetConoProbeMeasurer*>(vinfo->UserData);
+
+	ProbeDialogParams p;
+	ProbeDialogResult r;
+
+	ZeroMemory(&p, sizeof (ProbeDialogParams));
+	ZeroMemory(&r, sizeof (ProbeDialogResult));
+
+	p.DlgProc = NULL;
+	p.Units = MMUnits;
+	p.Power = logic->CoarseLaserPower;
+	p.FinePower = logic->FineLaserPower;
+	p.Frequency = logic->Frequency;
+	p.DlgProc = NULL;
+
+	bool okPressed = ISmart::ShowProbeDialog(&logic->ConoProbe, 1, &p, &r);
+
+	logic->ConoProbe->SetAcquisitionParams(AcquisitionMode::TimeAcquisitionMode, logic->Frequency, logic->CalculateCompositeLaserPower(r.Power, r.FinePower), logic->DelayBetweenMeasurements);
+	logic->SetLaserPower(logic->CalculateCompositeLaserPower(r.Power, r.FinePower));
+	logic->SetFrequency(r.Frequency);
+
+	logic->Stop();
+
 	return NULL;
 }
 
 //----------------------------------------------------------------------------
-unsigned short vtkOptimetConoProbeMeasurer::GetCompositeLaserPower()
+unsigned short vtkOptimetConoProbeMeasurer::CalculateCompositeLaserPower(UINT16 coarseLaserPower, UINT16 fineLaserPower)
 {
-  unsigned short compositeLaserPower = this->CoarseLaserPower;
+	unsigned short compositeLaserPower = coarseLaserPower;
 	compositeLaserPower <<= 6;
-  compositeLaserPower |= this->FineLaserPower;
+	compositeLaserPower |= fineLaserPower;
   return compositeLaserPower;
 }

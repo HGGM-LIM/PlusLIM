@@ -105,7 +105,7 @@ vtkOptimetConoProbeMeasurer* vtkPlusConoProbeLinkCommand::GetConoProbeDevice(con
     if (conoProbeDevice==NULL)
     {
       // wrong type
-      LOG_ERROR("The specified device "<<conoProbeDeviceID<<" is not VirtualStreamCapture");
+      LOG_ERROR("The specified device "<<conoProbeDeviceID<<" is not OptimetConoProbe");
       return NULL;
     }
   }
@@ -150,10 +150,10 @@ PlusStatus vtkPlusConoProbeLinkCommand::Execute()
   }    
 
   std::string responseMessageBase = std::string("OptimetConoProbe (")+conoProbeDevice->GetDeviceId()+") "+this->Name;
-  LOG_INFO("vtkPlusConoProbeLinkCommand::Execute: "<<this->Name);
+  LOG_INFO("vtkPlusConoProbeLinkCommand::Execute: " << this->Name);
   if (STRCASECMP(this->Name, SHOW_CMD)==0)
   {
-    if (conoProbeDevice->ShowProbeDialog())
+    if (conoProbeDevice->Start())
     {
 		this->QueueStringResponse(responseMessageBase + " successful", PLUS_SUCCESS);
       return PLUS_SUCCESS;

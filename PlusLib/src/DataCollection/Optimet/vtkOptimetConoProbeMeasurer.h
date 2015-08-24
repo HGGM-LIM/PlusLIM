@@ -58,17 +58,14 @@ public:
   /*! Write configuration to xml data */
   virtual PlusStatus WriteConfiguration(vtkXMLDataElement* config);
 
-  /*! Set frequency. */
-  PlusStatus SetFrequency(int frequency);
-
-  /*! Opens the Probe Dialog. */
-  PlusStatus ShowProbeDialog();
-
   /*! ... */
   PlusStatus Start();
 
   /*! ... */
   PlusStatus Stop();
+
+  vtkSetMacro(LaserPower, UINT16);
+  vtkSetMacro(Frequency, UINT16);
 
 protected:
 
@@ -83,9 +80,9 @@ private:  // Functions.
   void operator=( const vtkOptimetConoProbeMeasurer& );
 
   /*! Get composite laser power. */
-  unsigned short GetCompositeLaserPower();  
+  unsigned short CalculateCompositeLaserPower(UINT16 coarseLaserPower, UINT16 fineLaserPower);
 
-  /*! ... */
+  /*! Opens the Probe Dialog. */
   static void* ProbeDialogThread(void* ptr);
 
 private:  // Variables.
@@ -104,6 +101,9 @@ private:  // Variables.
   /*! Frequency. */
   UINT16 Frequency;
 
+  /*! Laser Power. */
+  UINT16 LaserPower;
+
   /*! Coarse laser power. */
   unsigned short CoarseLaserPower;
 
@@ -115,6 +115,9 @@ private:  // Variables.
 
   /*! ... */
   int ThreadID;
+
+  /*! ... */
+  bool ProbeDialogOpen;
 };
 
 #endif
