@@ -5,11 +5,11 @@ See License.txt for details.
 =========================================================Plus=header=end*/ 
 
 #include "PlusConfigure.h"
-
-#include "vtkPlusCommandProcessor.h"
 #include "vtkPlusConoProbeLinkCommand.h"
-#include "vtkOptimetConoProbeMeasurer.h"
+
 #include "vtkDataCollector.h"
+#include "vtkOptimetConoProbeMeasurer.h"
+#include "vtkPlusCommandProcessor.h"
 
 vtkStandardNewMacro( vtkPlusConoProbeLinkCommand );
 
