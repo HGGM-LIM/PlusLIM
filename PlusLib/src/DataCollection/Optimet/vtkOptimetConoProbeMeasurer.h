@@ -33,8 +33,10 @@ Requires PLUS_USE_OPTIMET_CONOPROBE option in CMake.
 \ingroup PlusLibDataCollection
 */
 
-class vtkMultiThreader;
+
 class ISmart;
+class _Lens;
+class vtkMultiThreader;
 
 class vtkDataCollectionExport vtkOptimetConoProbeMeasurer : public vtkPlusDevice
 {
@@ -118,6 +120,9 @@ private:  // Variables.
 
   /*! ... */
   bool ProbeDialogOpen;
+
+  /*! ... */
+  _Lens* LensProperties;
 };
 
 #endif
