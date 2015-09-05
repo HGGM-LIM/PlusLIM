@@ -28,14 +28,15 @@ vtkOptiTrackTracker::vtkOptiTrackTracker()
 {
 	this->RequirePortNameInDeviceSetConfiguration = false;
 
-	//Set default VideoType parameter (Tracking Mode).
-	this->VideoType = 4;
-
 	// No callback function provided by the device, so the data capture thread will be used to poll the hardware and add new items to the buffer
 	this->StartThreadForInternalUpdates = true;
 
 	// Optitrack tracker
 	this->OptiTrackTracker = Optitrack::OptitrackTracker::New();
+	this->Exposition = 0;
+	this->Threshold = 0;
+	this->Illumination = 0;
+	this->CalibrationFile = "";
 
 	// Before the connection, Optitrack needs a calibration file to know the relative position between cameras
 	this->OptiTrackTracker->SetCalibrationFile(this->CalibrationFile);
@@ -79,7 +80,7 @@ PlusStatus vtkOptiTrackTracker::InternalConnect()
 	}
 
 	// Set camera parameters read from the PLUS XML configuration file
-	result = this->OptiTrackTracker->SetCameraParams(this->Exposition, this->Threshold, this->Illumination, this->VideoType);
+	result = this->OptiTrackTracker->SetCameraParams(this->Exposition, this->Threshold, this->Illumination);
 	if (result == ResultType::FAILURE)
 	{
 		LOG_ERROR("Camera settings could not be set");
@@ -217,14 +218,6 @@ PlusStatus vtkOptiTrackTracker::ReadConfiguration(vtkXMLDataElement* rootConfigE
 		}
 	}
 
-	int videoType = 0;
-	if (deviceConfig->GetScalarAttribute("VideoType", videoType))
-	{
-		{
-			this->VideoType = static_cast<unsigned short>(videoType);
-		}
-	}
-
 	std::string CalibrationFile = std::string(deviceConfig->GetAttribute("CalibrationFile"));
 
 	this->CalibrationFile = CalibrationFile;
@@ -288,7 +281,6 @@ PlusStatus vtkOptiTrackTracker::WriteConfiguration(vtkXMLDataElement* rootConfig
 	deviceConfig->SetIntAttribute("Exposition", static_cast<unsigned int>(this->Exposition));
 	deviceConfig->SetIntAttribute("Threshold", static_cast<unsigned int>(this->Threshold));
 	deviceConfig->SetIntAttribute("Illumination", static_cast<unsigned int>(this->Illumination));
-	deviceConfig->SetIntAttribute("VideoType", static_cast<unsigned int>(this->VideoType));
 	deviceConfig->SetAttribute("CalibrationFile", this->CalibrationFile.c_str());
 
 	return PLUS_SUCCESS;

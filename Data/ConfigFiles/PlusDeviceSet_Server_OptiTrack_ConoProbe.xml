@@ -11,13 +11,13 @@
       ToolReferenceFrame="Tracker"
       AcquisitionRate="100"
       LocalTimeOffsetSec="0"
-      CalibrationFile="C:/Plus-VS2013-64bit/Data/CalibrationFiles/calibration_2015_08_14.cal"
+      CalibrationFile="C:/Plus-D/Data/CalibrationFiles/calibration_2015_09_04.cal"
       Exposition="7"
       Threshold="200"
       Illumination="14">
       <DataSources>
-        <DataSource Type="Tool" Id="RigidBody" ConfFile="C:/Plus-VS2013-64bit/Data/ToolDefinitions/RigidBodyXML.xml"/>
-        <DataSource Type="Tool" Id="PolarisPointerTip" ConfFile="C:/Plus-VS2013-64bit/Data/ToolDefinitions/PolarisPointerTipXML.xml"/>
+        <DataSource Type="Tool" Id="RigidBody" ConfFile="C:/Plus-D/Data/ToolDefinitions/RigidBodyXML.xml"/>
+        <DataSource Type="Tool" Id="PolarisPointerTip" ConfFile="C:/Plus-D/Data/ToolDefinitions/PolarisPointerTipXML.xml"/>
       </DataSources>
       <OutputChannels>
         <OutputChannel Id="TrackerStream">

@@ -94,9 +94,6 @@ private:  // Variables.
 	/*! Cameras Parameter 3 */
 	int Illumination;
 
-	/*! Cameras Parameter 4 */
-	int VideoType;
-
 	/*! Calibration File for Optitrack System */
 	std::string CalibrationFile;
 
