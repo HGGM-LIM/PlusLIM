@@ -13,7 +13,7 @@
       ToolReferenceFrame="Tracker" 
       UseOriginalTimestamps="TRUE"
       RepeatEnabled="TRUE"
-      SequenceMetafile="../../Data/Recordings/PlusServerRecording_ConoProbe_OptiTrack.mha" >
+      SequenceMetafile="C:/Plus-R/Data/Recordings/PlusServerRecording_ConoProbe_OptiTrack.mha" >
       <DataSources>
         <DataSource Type="Tool" Id="RigidBody"  />
         <DataSource Type="Tool" Id="PolarisPointerTip"  />
@@ -35,7 +35,7 @@
       ToolReferenceFrame="Measurer"     
       UseOriginalTimestamps="TRUE"
       RepeatEnabled="TRUE"      
-      SequenceMetafile="../../Recordings/PlusServerRecording_ConoProbe_OptiTrack.mha" >
+      SequenceMetafile="C:/Plus-R/Recordings/PlusServerRecording_ConoProbe_OptiTrack.mha" >
       <DataSources>
         <DataSource Type="Tool" Id="Measurement" />
         <DataSource Type="Tool" Id="Parameters"  />
