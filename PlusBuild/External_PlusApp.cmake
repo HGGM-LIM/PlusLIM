@@ -17,11 +17,9 @@ IF ( PLUSBUILD_DOCUMENTATION )
     )
 ENDIF()
 
-message("Fix to use source code from original clone repository and not use the respository version of PlusLib")
-message("PLUS/PlusBuild/External_PlusApp.cmake ------ LINE 22")
-#m################################### FROM HERE ##############################################
-
-
+#message("Fix to use source code from original clone repository and not use the respository version of PlusLib")
+#message("PLUS/PlusBuild/External_PlusApp.cmake ------ LINE 22")
+#################################### FROM HERE ##############################################
 SET (PLUS_PLUSAPP_DIR ${CMAKE_SOURCE_DIR}/../PlusApp CACHE INTERNAL "Path to store PlusApp contents.")
 
 ExternalProject_Add(PlusApp
@@ -32,7 +30,7 @@ ExternalProject_Add(PlusApp
   #SVN_PASSWORD ${PLUSBUILD_ASSEMBLA_PASSWORD}
   #SVN_REPOSITORY https://subversion.assembla.com/svn/plus/trunk/PlusApp
   #${PLUSBUILD_SVN_REVISION_ARGS}
-#m################################### TO HERE ##############################################
+#################################### TO HERE ##############################################
   #--Configure step-------------
   CMAKE_ARGS 
     ${ep_common_args}

@@ -192,14 +192,10 @@ ENDIF()
 # --------------------------------------------------------------------------
 # PlusLib
 
-message("Fix to use source code from original clone repository and not use the respository version of PlusLib")
-message("PLUS/PlusBuild/External_PlusLib.cmake ------ LINE 197")
-#m################################### FROM HERE ##############################################
-
-
+#message("Fix to use source code from original clone repository and not use the respository version of PlusLib")
+#message("PLUS/PlusBuild/External_PlusLib.cmake ------ LINE 197")
+#################################### FROM HERE ##############################################
 SET (PLUS_PLUSLIB_DIR ${CMAKE_SOURCE_DIR}/../PlusLib CACHE INTERNAL "Path to store PlusLib contents.")
-
-
 
 ExternalProject_Add(PlusLib
   SOURCE_DIR "${PLUS_PLUSLIB_DIR}" 
@@ -209,8 +205,7 @@ ExternalProject_Add(PlusLib
   #SVN_PASSWORD ${PLUSBUILD_ASSEMBLA_PASSWORD}
   #SVN_REPOSITORY https://subversion.assembla.com/svn/plus/trunk/PlusLib
   #${PLUSBUILD_SVN_REVISION_ARGS}
-
-#m################################### TO HERE ##############################################
+#################################### TO HERE ##############################################
   #--Configure step-------------
   CMAKE_ARGS 
     ${ep_common_args}

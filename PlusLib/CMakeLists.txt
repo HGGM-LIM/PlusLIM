@@ -49,6 +49,8 @@ find_package(Subversion)
   # MESSAGE(STATUS "Current revision is ${PLUSLIB_SVN_INFO_WC_REVISION}") 
   # SET(PLUSLIB_REVISION ${PLUSLIB_SVN_INFO_WC_REVISION})
 # ENDIF(Subversion_FOUND)
+
+# Fake revision number since we are not using the PLUS trunk but our own repo
 SET(PLUSLIB_REVISION "4225")
 
 SET( PLUSLIB_SVN_EXECUTABLE ${Subversion_SVN_EXECUTABLE} )
