@@ -73,7 +73,7 @@ PlusStatus vtkOptiTrackTracker::InternalConnect()
 	// Load Calibration file
 	this->OptiTrackTracker->SetCalibrationFile(this->CalibrationFile);
 	result = this->OptiTrackTracker->LoadCalibration();
-	if (result == ResultType::FAILURE)
+	if (result == ResultType_FAILURE)
 	{
 		LOG_ERROR("Calibration File could not be uploaded");
 		return PLUS_FAIL;
@@ -81,7 +81,7 @@ PlusStatus vtkOptiTrackTracker::InternalConnect()
 
 	// Set camera parameters read from the PLUS XML configuration file
 	result = this->OptiTrackTracker->SetCameraParams(this->Exposition, this->Threshold, this->Illumination);
-	if (result == ResultType::FAILURE)
+	if (result == ResultType_FAILURE)
 	{
 		LOG_ERROR("Camera settings could not be set");
 		return PLUS_FAIL;
@@ -98,7 +98,7 @@ PlusStatus vtkOptiTrackTracker::InternalConnect()
 		LOG_TRACE("Adding Tool");
 		newTool = Optitrack::OptitrackTool::New();
 		resultConfigure = newTool->ConfigureToolByXmlFile(ConfFile);
-		if (resultConfigure == ResultType::SUCCESS)
+		if (resultConfigure == ResultType_SUCCESS)
 		{
 			this->OptiTrackTracker->AddTrackerTool(newTool);
 		}
