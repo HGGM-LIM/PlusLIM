@@ -39,6 +39,9 @@ See License.txt for details.
 #ifdef PLUS_USE_BRACHY_TRACKER
 #include "vtkBrachyTracker.h"
 #endif
+#ifdef PLUS_USE_USDIGITALENCODERS_TRACKER
+#include "vtkUSDigitalEncodersTracker.h"
+#endif
 #ifdef PLUS_USE_Ascension3DG
 #include "vtkAscension3DGTracker.h"
 #endif
@@ -124,6 +127,10 @@ See License.txt for details.
 #include "vtkPhilips3DProbeVideoSource.h"
 #endif
 
+#ifdef PLUS_USE_CAPISTRANO_VIDEO
+#include "Capistrano\vtkCapistranoVideoSource.h"
+#endif
+
 //----------------------------------------------------------------------------
 
 vtkStandardNewMacro(vtkPlusDeviceFactory);
@@ -141,11 +148,14 @@ vtkPlusDeviceFactory::vtkPlusDeviceFactory(void)
   DeviceTypes["3dConnexion"]=(PointerToDevice)&vtk3dConnexionTracker::New; 
 #endif
 #ifdef PLUS_USE_OpenIGTLink
-  DeviceTypes["OpenIGTLinkTracker"]=(PointerToDevice)&vtkOpenIGTLinkTracker::New; 
+  DeviceTypes["OpenIGTLinkTracker"]=(PointerToDevice)&vtkOpenIGTLinkTracker::New;
 #endif
 #ifdef PLUS_USE_BRACHY_TRACKER
   DeviceTypes["BrachyTracker"]=(PointerToDevice)&vtkBrachyTracker::New; 
 #endif 
+#ifdef PLUS_USE_USDIGITALENCODERS_TRACKER
+  DeviceTypes["USDigitalEncodersTracker"]=(PointerToDevice)&vtkUSDigitalEncodersTracker::New;
+#endif
 #ifdef PLUS_USE_CERTUS
   DeviceTypes["CertusTracker"]=(PointerToDevice)&vtkNDICertusTracker::New; 
 #endif
@@ -224,7 +234,11 @@ vtkPlusDeviceFactory::vtkPlusDeviceFactory(void)
 #endif
 
 #ifdef PLUS_USE_PHILIPS_3D_ULTRASOUND
-  DeviceTypes["ie33Video"]=(PointerToDevice)&vtkPhilips3DProbeVideoSource::New;
+  DeviceTypes["iE33Video"]=(PointerToDevice)&vtkPhilips3DProbeVideoSource::New;
+#endif
+
+#ifdef PLUS_USE_CAPISTRANO_VIDEO
+	DeviceTypes["CapistranoVideo"]=(PointerToDevice)&vtkCapistranoVideoSource::New;
 #endif
 
   // Virtual Devices

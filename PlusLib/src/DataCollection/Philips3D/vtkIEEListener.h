@@ -7,17 +7,18 @@ See License.txt for details.
 #ifndef __IEEListener_h
 #define __IEEListener_h
 
-#include "vtkDataCollectionExport.h"
-
-#include "vtkObject.h"
 #include "StreamMgr.h"
+#include "vtkDataCollectionExport.h"
+#include "vtkObject.h"
+#include "vtkPlusLogger.h"
 
 class vtkDataCollectionExport vtkIEEListener : public vtkObject
 {
 public:
   vtkTypeMacro(vtkIEEListener, vtkObject);
-  void PrintSelf(ostream& os, vtkIndent indent);   
+  void PrintSelf(ostream& os, vtkIndent indent);
   static vtkIEEListener* New();
+  static vtkIEEListener* New(bool forceZQuantize, double resolutionFactor, bool integerZ, bool isotropic, bool quantizeDim, int zDecimation, bool set4PtFIR, int latAndElevSmoothingIndex);
 
   void SetMachineName(const std::string& machineName);
   void SetPortNumber(unsigned int port);
@@ -26,7 +27,7 @@ public:
     Connect to a streaming ie33 device
     \param callback the function to call when new data
   */
-  PlusStatus Connect(CLIENT_POSTSCANCONVERT_CALLBACK callback);
+  PlusStatus Connect(CLIENT_POSTSCANCONVERT_CALLBACK callback, vtkPlusLogger::LogLevelType logType = vtkPlusLogger::LOG_LEVEL_ERROR);
   /*!
     Disconnect from the ie33 device
   */
@@ -37,6 +38,7 @@ public:
 
 protected:
   vtkIEEListener();
+  vtkIEEListener(bool forceZQuantize, double resolutionFactor, bool integerZ, bool isotropic, bool quantizeDim, int zDecimation, bool set4PtFIR, int latAndElevSmoothingIndex);
   ~vtkIEEListener();
 
 protected:
@@ -46,8 +48,8 @@ protected:
   bool Connected;
 
 private:
-  vtkIEEListener(const vtkIEEListener&);  // Not implemented.
-  void operator=(const vtkIEEListener&);  // Not implemented.
+  vtkIEEListener(const vtkIEEListener&);
+  void operator=(const vtkIEEListener&);
 };
 
 #endif //__IEEListener_h

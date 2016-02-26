@@ -17,25 +17,28 @@ IF ( PLUSBUILD_DOCUMENTATION )
     )
 ENDIF()
 
-#message("Fix to use source code from original clone repository and not use the respository version of PlusLib")
-#message("PLUS/PlusBuild/External_PlusApp.cmake ------ LINE 22")
-#################################### FROM HERE ##############################################
-SET (PLUS_PLUSAPP_DIR ${CMAKE_SOURCE_DIR}/../PlusApp CACHE INTERNAL "Path to store PlusApp contents.")
+IF( BUILDNAME )
+  SET(PLUSBUILD_ADDITIONAL_SDK_ARGS ${PLUSBUILD_ADDITIONAL_SDK_ARGS}
+    -DBUILDNAME:STRING=${BUILDNAME}
+  )
+ENDIF( BUILDNAME )
 
+SET (PLUS_PLUSAPP_DIR ${CMAKE_BINARY_DIR}/PlusApp CACHE INTERNAL "Path to store PlusApp contents.")
 ExternalProject_Add(PlusApp
+  "${PLUSBUILD_EXTERNAL_PROJECT_CUSTOM_COMMANDS}"
   SOURCE_DIR "${PLUS_PLUSAPP_DIR}" 
   BINARY_DIR "PlusApp-bin"
   #--Download step--------------
-  #SVN_USERNAME ${PLUSBUILD_ASSEMBLA_USERNAME}
-  #SVN_PASSWORD ${PLUSBUILD_ASSEMBLA_PASSWORD}
-  #SVN_REPOSITORY https://subversion.assembla.com/svn/plus/trunk/PlusApp
-  #${PLUSBUILD_SVN_REVISION_ARGS}
-#################################### TO HERE ##############################################
+  SVN_USERNAME ${PLUSBUILD_ASSEMBLA_USERNAME}
+  SVN_PASSWORD ${PLUSBUILD_ASSEMBLA_PASSWORD}
+  SVN_REPOSITORY https://subversion.assembla.com/svn/plus/trunk/PlusApp
+  ${PLUSBUILD_SVN_REVISION_ARGS}
   #--Configure step-------------
   CMAKE_ARGS 
     ${ep_common_args}
     -DPLUS_EXECUTABLE_OUTPUT_PATH:STRING=${PLUS_EXECUTABLE_OUTPUT_PATH}
     -DPLUSLIB_DIR:PATH=${PLUSLIB_DIR}
+    -DPLUSAPP_OFFLINE_BUILD:BOOL=${PLUSBUILD_OFFLINE_BUILD}
     -DSubversion_SVN_EXECUTABLE:FILEPATH=${Subversion_SVN_EXECUTABLE}
     -DPLUSAPP_BUILD_DiagnosticTools:BOOL=ON
     -DPLUSAPP_BUILD_fCal:BOOL=ON
@@ -52,21 +55,33 @@ ExternalProject_Add(PlusApp
   INSTALL_COMMAND ""
   DEPENDS ${PlusApp_DEPENDENCIES}
   )
-
-
 SET(PLUSAPP_DIR ${CMAKE_BINARY_DIR}/PlusApp-bin CACHE PATH "The directory containing PlusApp binaries" FORCE)                
 
 # --------------------------------------------------------------------------
 # Copy Qt binaries to PLUS_EXECUTABLE_OUTPUT_PATH
+
+# Determine shared library extension without the dot (dll instead of .dll)
+STRING(SUBSTRING ${CMAKE_SHARED_LIBRARY_SUFFIX} 1 -1 CMAKE_SHARED_LIBRARY_SUFFIX_NO_SEPARATOR)
+
+# Get all Qt shared library names
+IF( ${QT_VERSION_MAJOR} AND ${QT_VERSION_MAJOR} EQUAL 5 )
+  SET(RELEASE_REGEX_PATTERN .t5.*[^d][.]${CMAKE_SHARED_LIBRARY_SUFFIX_NO_SEPARATOR})
+  SET(DEBUG_REGEX_PATTERN .t5.*d[.]${CMAKE_SHARED_LIBRARY_SUFFIX_NO_SEPARATOR})
+ELSE()
+  SET(RELEASE_REGEX_PATTERN .*[^d]4[.]${CMAKE_SHARED_LIBRARY_SUFFIX_NO_SEPARATOR} )
+  SET(DEBUG_REGEX_PATTERN .*d4[.]${CMAKE_SHARED_LIBRARY_SUFFIX_NO_SEPARATOR} )
+ENDIF()
+
+# Copy shared libraries to bin directory to allow running Plus applications in the build tree
 IF ( ${CMAKE_GENERATOR} MATCHES "Visual Studio" )
   FILE(COPY "${QT_BINARY_DIR}/"
     DESTINATION ${PLUS_EXECUTABLE_OUTPUT_PATH}/Release
-    FILES_MATCHING REGEX .*[^d]4${CMAKE_SHARED_LIBRARY_SUFFIX}
+    FILES_MATCHING REGEX ${RELEASE_REGEX_PATTERN}
     )
   FILE(COPY "${QT_BINARY_DIR}/"
     DESTINATION ${PLUS_EXECUTABLE_OUTPUT_PATH}/Debug
-    FILES_MATCHING REGEX .*d4${CMAKE_SHARED_LIBRARY_SUFFIX}
-    )    
+    FILES_MATCHING REGEX ${DEBUG_REGEX_PATTERN}
+    )
 ELSE()
   FILE(COPY "${QT_BINARY_DIR}/"
     DESTINATION ${PLUS_EXECUTABLE_OUTPUT_PATH}

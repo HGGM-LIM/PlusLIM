@@ -17,6 +17,7 @@ See License.txt for details.
 #include "vtkPlusSendTextCommand.h"
 #include "vtkPlusStartStopRecordingCommand.h"
 #include "vtkPlusUpdateTransformCommand.h"
+#include "vtkPlusGetTransformCommand.h"
 #ifdef PLUS_USE_STEALTHLINK
   #include "vtkPlusStealthLinkCommand.h"
 #endif
@@ -100,10 +101,11 @@ void PrintCommand(vtkPlusCommand* command)
 }
 
 //----------------------------------------------------------------------------
-PlusStatus ExecuteStartAcquisition(vtkPlusOpenIGTLinkClient* client, const std::string &deviceId)
+PlusStatus ExecuteStartAcquisition(vtkPlusOpenIGTLinkClient* client, const std::string &deviceId, bool enableCompression)
 {
   vtkSmartPointer<vtkPlusStartStopRecordingCommand> cmd=vtkSmartPointer<vtkPlusStartStopRecordingCommand>::New();    
   cmd->SetNameToStart();
+  cmd->SetEnableCompression(enableCompression);
   if ( !deviceId.empty() )
   {
     cmd->SetCaptureDeviceId(deviceId.c_str());
@@ -119,7 +121,7 @@ PlusStatus ExecuteStopAcquisition(vtkPlusOpenIGTLinkClient* client, const std::s
   cmd->SetNameToStop();
   if (outputFilename.empty())
   {
-    outputFilename="PlusServerRecording.mha";
+    outputFilename="PlusServerRecording.nrrd";
   }
   cmd->SetOutputFilename(outputFilename.c_str());
   if ( !deviceId.empty() )
@@ -335,6 +337,16 @@ PlusStatus ExecuteUpdateTransform(vtkPlusOpenIGTLinkClient* client, const std::s
 }
 
 //----------------------------------------------------------------------------
+PlusStatus ExecuteGetTransform(vtkPlusOpenIGTLinkClient* client, const std::string &transformName)
+{
+  vtkSmartPointer<vtkPlusGetTransformCommand> cmd = vtkSmartPointer<vtkPlusGetTransformCommand>::New();
+  cmd->SetNameToGetTransform();
+  cmd->SetTransformName(transformName.c_str());
+  PrintCommand(cmd);
+  return client->SendCommand(cmd);
+}
+
+//----------------------------------------------------------------------------
 PlusStatus ExecuteSaveConfig(vtkPlusOpenIGTLinkClient* client, const std::string &outputFilename)
 {
   vtkSmartPointer<vtkPlusSaveConfigCommand> cmd = vtkSmartPointer<vtkPlusSaveConfigCommand>::New();
@@ -454,16 +466,24 @@ void StopPlusServerProcess(vtksysProcess* &processPtr)
 PlusStatus RunTests(vtkPlusOpenIGTLinkClient* client)
 {
   const char captureDeviceId[]="CaptureDevice";
-  const char capturingOutputFileName[]="OpenIGTTrackedVideoRecordingTest.mha";
+  const char capturingOutputFileName[]="OpenIGTTrackedVideoRecordingTest.mha"; // must match the extension defined in the config file
 
   const char volumeReconstructionDeviceId[]="VolumeReconstructorDevice";
   const char* batchReconstructionInputFileName=capturingOutputFileName;
-  const char batchReconstructionOutputFileName[]="VolumeReconstructedBatch.mha";
   const char batchReconstructionOutputImageName[]="VolumeReconstructedBatch";
-  const char snapshotReconstructionOutputFileName[]="VolumeReconstructedSnapshot.mha";
   const char snapshotReconstructionOutputImageName[]="VolumeReconstructedSnapshot";
-  const char liveReconstructionOutputFileName[]="VolumeReconstructedLive.mha";
   const char liveReconstructionOutputImageName[]="VolumeReconstructedLive";
+  
+  // There is no NRRD support in VTK5, so only use it with VTK6
+#if (VTK_MAJOR_VERSION < 6)
+  const char batchReconstructionOutputFileName[]="VolumeReconstructedBatch.mha";
+  const char snapshotReconstructionOutputFileName[]="VolumeReconstructedSnapshot.mha";
+  const char liveReconstructionOutputFileName[]="VolumeReconstructedLive.mha";
+#else
+  const char batchReconstructionOutputFileName[]="VolumeReconstructedBatch.nrrd";
+  const char snapshotReconstructionOutputFileName[]="VolumeReconstructedSnapshot.nrrd";
+  const char liveReconstructionOutputFileName[]="VolumeReconstructedLive.nrrd";
+#endif
 
   // Basic commands
   ExecuteGetChannelIds(client);
@@ -472,11 +492,13 @@ PlusStatus RunTests(vtkPlusOpenIGTLinkClient* client)
   RETURN_IF_FAIL(PrintReply(client));
   ExecuteUpdateTransform(client, "Test1ToReference", "1 0 0 10 0 1.2 0.1 12 0.1 0.2 -0.9 -20 0 0 0 1", "1.4", "100314_182141", "TRUE");
   RETURN_IF_FAIL(PrintReply(client));
+  ExecuteGetTransform(client, "Test1ToReference");
+  RETURN_IF_FAIL(PrintReply(client));
   ExecuteSaveConfig(client, "Test1SavedConfig.xml");
   RETURN_IF_FAIL(PrintReply(client));
 
   // Capturing
-  ExecuteStartAcquisition(client, captureDeviceId);
+  ExecuteStartAcquisition(client, captureDeviceId, false);
   RETURN_IF_FAIL(PrintReply(client));
   vtkAccurateTimer::DelayWithEventProcessing(2.0);
   ExecuteSuspendAcquisition(client, captureDeviceId);
@@ -536,7 +558,7 @@ int main( int argc, char** argv )
   int serverPort = 18944;
   std::string command;
   std::string deviceId;
-  std::string inputFilename="PlusServerRecording.mha";
+  std::string inputFilename="PlusServerRecording.nrrd";
   std::string outputFilename;
   std::string outputImageName;
   std::string transformName;
@@ -549,6 +571,7 @@ int main( int argc, char** argv )
   std::string text;
   bool keepReceivedDicomFiles = false;
   bool responseExpected = false;
+  bool enableCompression = false;
   int verboseLevel = vtkPlusLogger::LOG_LEVEL_UNDEFINED;
   bool keepConnected=false;
   std::string serverConfigFileName;
@@ -560,11 +583,10 @@ int main( int argc, char** argv )
   args.AddArgument( "--host", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &serverHost, "Host name of the OpenIGTLink server (default: 127.0.0.1)" );
   args.AddArgument( "--port", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &serverPort, "Port address of the OpenIGTLink server (default: 18944)" );
   args.AddArgument( "--command", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &command, 
-    "Command name to be executed on the server (START_ACQUISITION, STOP_ACQUISITION, SUSPEND_ACQUISITION, RESUME_ACQUISITION, \
-    RECONSTRUCT, START_RECONSTRUCTION, SUSPEND_RECONSTRUCTION, RESUME_RECONSTRUCTION, STOP_RECONSTRUCTION, GET_RECONSTRUCTION_SNAPSHOT, GET_CHANNEL_IDS, GET_DEVICE_IDS, GET_EXAM_DATA, SEND_TEXT)" );
+    "Command name to be executed on the server (START_ACQUISITION, STOP_ACQUISITION, SUSPEND_ACQUISITION, RESUME_ACQUISITION, RECONSTRUCT, START_RECONSTRUCTION, SUSPEND_RECONSTRUCTION, RESUME_RECONSTRUCTION, STOP_RECONSTRUCTION, GET_RECONSTRUCTION_SNAPSHOT, GET_CHANNEL_IDS, GET_DEVICE_IDS, GET_EXAM_DATA, SEND_TEXT, UPDATE_TRANSFORM, GET_TRANSFORM)" );
   args.AddArgument( "--device", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &deviceId, "ID of the controlled device (optional, default: first VirtualStreamCapture or VirtualVolumeReconstructor device). In case of GET_DEVICE_IDS it is not an ID but a device type." );
   args.AddArgument( "--input-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputFilename, "File name of the input, used for RECONSTRUCT command" );
-  args.AddArgument( "--output-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &outputFilename, "File name of the output, used for START command (optional, default: 'PlusServerRecording.mha' for acquisition, no output for volume reconstruction)" );
+  args.AddArgument( "--output-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &outputFilename, "File name of the output, used for START command (optional, default: 'PlusServerRecording.nrrd' for acquisition, no output for volume reconstruction)" );
   args.AddArgument( "--output-image-name", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &outputImageName, "OpenIGTLink device name of the reconstructed file (optional, default: image is not sent)" );
   args.AddArgument( "--text", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &text, "Text to be sent to the device" );
   args.AddArgument( "--transform-name", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &transformName, "The name of the transform to update. Form=[From]To[To]Transform" );
@@ -572,6 +594,7 @@ int main( int argc, char** argv )
   args.AddArgument( "--transform-error", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &transformError, "The error of the transform to update." );
   args.AddArgument( "--transform-persistent", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &transformPersistent, "The persistence of the transform to update." );
   args.AddArgument( "--transform-value", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &transformValue, "The actual transformation matrix to update." );
+  args.AddArgument( "--use-compression", vtksys::CommandLineArguments::NO_ARGUMENT, &enableCompression, "Set capture device to record compressed data. Only supported with .nrrd capture." );
   args.AddArgument( "--keep-connected", vtksys::CommandLineArguments::NO_ARGUMENT, &keepConnected, "Keep the connection to the server after command completion (exits on CTRL-C).");  
   args.AddArgument( "--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug, 5=trace)" );
   args.AddArgument( "--dicom-directory", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &dicomOutputDirectory, "The folder directory for the dicom images acquired from the StealthLink Server");
@@ -632,7 +655,7 @@ int main( int argc, char** argv )
   {
     PlusStatus commandExecutionStatus = PLUS_SUCCESS;
     // Execute command
-    if (STRCASECMP(command.c_str(),"START_ACQUISITION")==0) { commandExecutionStatus = ExecuteStartAcquisition(client, deviceId); }
+    if (STRCASECMP(command.c_str(),"START_ACQUISITION")==0) { commandExecutionStatus = ExecuteStartAcquisition(client, deviceId, enableCompression); }
     else if (STRCASECMP(command.c_str(),"STOP_ACQUISITION")==0) { commandExecutionStatus = ExecuteStopAcquisition(client, deviceId, outputFilename); }
     else if (STRCASECMP(command.c_str(),"SUSPEND_ACQUISITION")==0) { commandExecutionStatus = ExecuteSuspendAcquisition(client, deviceId); }
     else if (STRCASECMP(command.c_str(),"RESUME_ACQUISITION")==0) { commandExecutionStatus = ExecuteResumeAcquisition(client, deviceId); }
@@ -647,6 +670,7 @@ int main( int argc, char** argv )
     else if (STRCASECMP(command.c_str(), "UPDATE_TRANSFORM")==0) { commandExecutionStatus = ExecuteUpdateTransform(client, transformName, transformValue, transformError, transformDate, transformPersistent); }
     else if (STRCASECMP(command.c_str(), "SAVE_CONFIG")==0) { commandExecutionStatus = ExecuteSaveConfig(client, outputFilename); }
     else if (STRCASECMP(command.c_str(), "SEND_TEXT")==0) { commandExecutionStatus = ExecuteSendText(client, deviceId, text, responseExpected); }
+    else if (STRCASECMP(command.c_str(), "GET_TRANSFORM")==0) { commandExecutionStatus = ExecuteGetTransform(client, transformName); }
     else if (STRCASECMP(command.c_str(), "GET_EXAM_DATA")==0)
     {
 #ifdef PLUS_USE_STEALTHLINK

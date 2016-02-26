@@ -171,7 +171,12 @@ vtkPlusLogger* vtkPlusLogger::Instance()
       return m_pInstance;
     }
 
-    m_pInstance = new vtkPlusLogger; 
+    vtkPlusLogger* newLoggerInstance = new vtkPlusLogger;
+    // lock the instance even before making it available to make sure the instance is fully
+    // initialized before anybody uses it
+    PlusLockGuard<vtkRecursiveCriticalSection> critSectionGuard(newLoggerInstance->m_CriticalSection);
+    m_pInstance = newLoggerInstance;
+
     vtkPlusConfig::GetInstance(); // set the log file name from the XML config
     std::string strPlusLibVersion = std::string("Software version: ") + 
       PlusCommon::GetPlusLibVersionString(); 
@@ -184,6 +189,33 @@ vtkPlusLogger* vtkPlusLogger::Instance()
   }
 
   return m_pInstance;
+}
+
+//----------------------------------------------------------------------------
+vtkPlusLogger::LogLevelType vtkPlusLogger::GetLogLevelType(const std::string& logLevelString)
+{
+  if (logLevelString=="DEBUG")
+  {
+    return LOG_LEVEL_DEBUG;
+  }
+  else if (logLevelString=="INFO")
+  {
+    return LOG_LEVEL_INFO;
+  }
+  else if (logLevelString=="WARNING")
+  {
+    return LOG_LEVEL_WARNING;
+  }
+  else if (logLevelString=="ERROR")
+  {
+    return LOG_LEVEL_ERROR;
+  }
+  else if (logLevelString=="TRACE")
+  {
+    return LOG_LEVEL_TRACE;
+  }
+
+  return LOG_LEVEL_UNDEFINED;
 }
 
 //-------------------------------------------------------
@@ -309,8 +341,13 @@ void vtkPlusLogger::LogMessage(LogLevelType level, const char *msg, const char* 
     log << " ";
   }
 
+  log << msg;
+
   // Add the message to the log
-  log << msg << "| in " << fileName << "(" << lineNumber << ")"; // add filename and line number
+  if( fileName != NULL )
+  {
+     log << "| in " << fileName << "(" << lineNumber << ")"; // add filename and line number
+  }
 
   {
     PlusLockGuard<vtkRecursiveCriticalSection> critSectionGuard(this->m_CriticalSection);
@@ -392,6 +429,19 @@ void vtkPlusLogger::LogMessage(LogLevelType level, const char *msg, const char* 
   }
 
   this->Flush();
+}
+
+//-------------------------------------------------------
+void vtkPlusLogger::LogMessage(LogLevelType level, const std::string& msg, const std::string& optionalPrefix /*= std::string("")*/)
+{
+  if( optionalPrefix.empty() )
+  {
+    this->LogMessage(level, msg.c_str(), NULL, -1, NULL);
+  }
+  else
+  {
+    this->LogMessage(level, msg.c_str(), NULL, -1, optionalPrefix.c_str());
+  }
 }
 
 //-------------------------------------------------------

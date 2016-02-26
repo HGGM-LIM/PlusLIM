@@ -25,18 +25,13 @@ Authors include:
 /*!
 \class vtkOptimetConoProbeMeasurer 
 \brief Interface for the Optimet ConoProbe
-
 This class talks with Optimet ConoProbe over the Optimet Smart32 SDK
-
 Requires PLUS_USE_OPTIMET_CONOPROBE option in CMake.
-
 \ingroup PlusLibDataCollection
 */
 
-
-class ISmart;
-class _Lens;
 class vtkMultiThreader;
+class ISmart;
 
 class vtkDataCollectionExport vtkOptimetConoProbeMeasurer : public vtkPlusDevice
 {
@@ -60,10 +55,10 @@ public:
   /*! Write configuration to xml data */
   virtual PlusStatus WriteConfiguration(vtkXMLDataElement* config);
 
-  /*! Starts the ProbeDialogThread */
+  /*! ... */
   PlusStatus Start();
 
-  /*! Stops the ProbeDialogThread */
+  /*! ... */
   PlusStatus Stop();
 
   vtkSetMacro(LaserPower, UINT16);
@@ -112,17 +107,14 @@ private:  // Variables.
   /*! Fine laser power. */
   unsigned short FineLaserPower;
 
-  /*! Thread running the Probe Dialog. */
+  /*! ... */
   vtkMultiThreader* Thread;
 
-  /*! ThreadID of the tread running the Probe Dialog. */
+  /*! ... */
   int ThreadID;
 
-  /*! True when the Probe Dialog is open. */
+  /*! ... */
   bool ProbeDialogOpen;
-
-  /*! Lens object holding the lens properties of the ConoProbe. */
-  _Lens* LensProperties;
 };
 
 #endif

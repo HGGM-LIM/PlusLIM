@@ -19,6 +19,7 @@ Any NDI tracking device is supported that uses the common API, such as <a href="
 
 - If USB connection is used then drivers should be installed to allow the computer to connect to the system control unit (SCU).
 - If you have just turned on the tracker and attempt to use it right away, you may get the error message "command is invalid while in current mode"; wait for the leftmost LED on the position sensor to stop flashing and try again.
+- Default settings provide maximum compatibility (work with most trackers), but most of the time they do not provide optimal performance. It is recommended to use maximum \b BaudRate (typically 921600 works well) to have high refresh rate and low latency. Tracking may be also improved by choosing the most appropriate tracking volume by adjusting the \b MeasurementVolumeNumber attribute.
 
 \section PolarisConfigSettings Device configuration settings
 
@@ -36,7 +37,7 @@ Any NDI tracking device is supported that uses the common API, such as <a href="
     - \xmlAtt \b Type = \c "Tool" \RequiredAtt
     - \xmlAtt \b Id A string that identifies the tool element. \RequiredAtt
     - \xmlAtt \ref PortName For wired tools only (should not be defined for wireless tools). Contains the port number, starting from 0 (e.g., name of the first port is "0", name of the second port is "1") \OptionalAtt{ }
-    - \xmlAtt \b RomFile For wireless tools only (should not be defined for wired tools). Name of the tool definition file (*.rom file). The file location is relative to the configuration file location. Standard tool rom files are available on the NDI Polaris Spectra Tool Kit cd in the Tool Definition Files folder. If a PortName is specified too it will be ignored. \OptionalAtt{ }
+    - \xmlAtt \b RomFile For wireless tools only (should not be defined for wired tools, unless the ROM content in the tool has to be overridden). Name of the tool definition file (*.rom file). The file location is relative to the configuration file location. Standard tool rom files are available on the NDI Polaris Spectra Tool Kit cd in the Tool Definition Files folder. \OptionalAtt{ }
     - \xmlAtt \ref BufferSize \OptionalAtt{150}
     - \xmlAtt \ref AveragedItemsForFiltering \OptionalAtt{20}
 

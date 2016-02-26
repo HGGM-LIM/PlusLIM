@@ -5,11 +5,11 @@ See License.txt for details.
 =========================================================Plus=header=end*/ 
 
 #include "PlusConfigure.h"
-#include "vtkPlusConoProbeLinkCommand.h"
 
-#include "vtkDataCollector.h"
-#include "vtkOptimetConoProbeMeasurer.h"
 #include "vtkPlusCommandProcessor.h"
+#include "vtkPlusConoProbeLinkCommand.h"
+#include "vtkOptimetConoProbeMeasurer.h"
+#include "vtkDataCollector.h"
 
 vtkStandardNewMacro( vtkPlusConoProbeLinkCommand );
 
@@ -105,7 +105,7 @@ vtkOptimetConoProbeMeasurer* vtkPlusConoProbeLinkCommand::GetConoProbeDevice(con
     if (conoProbeDevice==NULL)
     {
       // wrong type
-      LOG_ERROR("The specified device "<<conoProbeDeviceID<<" is not OptimetConoProbe");
+      LOG_ERROR("The specified device "<<conoProbeDeviceID<<" is not VirtualStreamCapture");
       return NULL;
     }
   }
@@ -150,10 +150,10 @@ PlusStatus vtkPlusConoProbeLinkCommand::Execute()
   }    
 
   std::string responseMessageBase = std::string("OptimetConoProbe (")+conoProbeDevice->GetDeviceId()+") "+this->Name;
-  LOG_INFO("vtkPlusConoProbeLinkCommand::Execute: " << this->Name);
+  LOG_INFO("vtkPlusConoProbeLinkCommand::Execute: "<<this->Name);
   if (STRCASECMP(this->Name, SHOW_CMD)==0)
   {
-    if (conoProbeDevice->Start())
+    if (conoProbeDevice->ShowProbeDialog())
     {
 		this->QueueStringResponse(responseMessageBase + " successful", PLUS_SUCCESS);
       return PLUS_SUCCESS;

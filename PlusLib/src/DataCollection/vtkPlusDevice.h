@@ -165,8 +165,8 @@ public:
   /*! Clear all tool buffers */
   void ClearAllBuffers();
 
-  /*! Dump the current state of the device to metafile (with each tools and buffers) */
-  virtual PlusStatus WriteToMetafile(const char* filename, bool useCompression = false );
+  /*! Dump the current state of the device to sequence file (with each tools and buffers) */
+  virtual PlusStatus WriteToSequenceFile(const char* filename, bool useCompression = false );
 
   /*! Make this device into a copy of another device. */
   void DeepCopy(vtkPlusDevice* device);
@@ -203,6 +203,9 @@ public:
 
   /*! Get the video source for the specified source name */
   PlusStatus GetVideoSource(const char* aSourceId, vtkPlusDataSource*& aVideoSource);
+
+  /*! Get all video sources*/
+  std::vector<vtkPlusDataSource*> GetVideoSources() const;
 
   /*! Get the video source for the specified source index */
   PlusStatus GetVideoSourceByIndex(const int index, vtkPlusDataSource*& aVideoSource);
@@ -452,6 +455,12 @@ protected:
   actions for stopping the recording
   */
   virtual PlusStatus InternalStopRecording() { return PLUS_SUCCESS; };
+
+  /*!
+  This function can be called to add a video item to all video data sources
+  */
+  PlusStatus AddVideoItemToVideoSources(const std::vector<vtkPlusDataSource*>& videoSources, const PlusVideoFrame& frame, long frameNumber, double unfilteredTimestamp=UNDEFINED_TIMESTAMP, 
+    double filteredTimestamp=UNDEFINED_TIMESTAMP, const TrackedFrame::FieldMapType* customFields = NULL);
 
   /*! 
   This function is called by InternalUpdate() so that the subclasses

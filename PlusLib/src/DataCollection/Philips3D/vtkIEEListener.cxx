@@ -13,13 +13,18 @@ Authors include:
 * Adam Rankin (Robarts Research Institute and The University of Western Ontario)
 =========================================================================*/  
 
+
+// Plus Includes
 #include "PlusConfigure.h"
 #include "vtkIEEListener.h"
-#include "StreamMgr.h"
 
 //----------------------------------------------------------------------------
 
 vtkStandardNewMacro(vtkIEEListener);
+vtkIEEListener* vtkIEEListener::New(bool forceZQuantize, double resolutionFactor, bool integerZ, bool isotropic, bool quantizeDim, int zDecimation, bool set4PtFIR, int latAndElevSmoothingIndex)
+{
+  return new vtkIEEListener(forceZQuantize, resolutionFactor, integerZ, isotropic, quantizeDim, zDecimation, set4PtFIR, latAndElevSmoothingIndex);
+}
 
 //----------------------------------------------------------------------------
 vtkIEEListener::vtkIEEListener()
@@ -32,13 +37,22 @@ vtkIEEListener::vtkIEEListener()
 }
 
 //----------------------------------------------------------------------------
-vtkIEEListener::~vtkIEEListener()
+vtkIEEListener::vtkIEEListener(bool forceZQuantize, double resolutionFactor, bool integerZ, bool isotropic, bool quantizeDim, int zDecimation, bool set4PtFIR, int latAndElevSmoothingIndex)
+  : vtkObject()
+  , StreamManager(new CStreamMgr(forceZQuantize, resolutionFactor, integerZ, isotropic, quantizeDim, zDecimation, set4PtFIR, latAndElevSmoothingIndex))
+  , MachineName("")
+  , Port(4013)
+  , Connected(false)
 {
-  //delete StreamManager;
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkIEEListener::Connect(CLIENT_POSTSCANCONVERT_CALLBACK callback)
+vtkIEEListener::~vtkIEEListener()
+{
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkIEEListener::Connect(CLIENT_POSTSCANCONVERT_CALLBACK callback, vtkPlusLogger::LogLevelType logType)
 {
   if( this->MachineName.empty() || this->Port <= 0 )
   {
@@ -56,7 +70,7 @@ PlusStatus vtkIEEListener::Connect(CLIENT_POSTSCANCONVERT_CALLBACK callback)
   HRESULT resultCode = StreamManager->Start((char*)this->MachineName.c_str(), this->Port);
   if( resultCode < 0)
   {
-    LOG_ERROR("Unable to connect to Philips system at " << this->MachineName << ":" << this->Port << ". Error code: " << std::hex << resultCode);
+    LOG_DYNAMIC("Unable to connect to Philips iE33 system at " << this->MachineName << ":" << this->Port << ". Error code: " << std::hex << resultCode, logType);
     return PLUS_FAIL;
   }
   else
@@ -76,8 +90,6 @@ PlusStatus vtkIEEListener::Disconnect()
 
     LOG_INFO("Shutdown stream:");
     StreamManager->Shutdown();
-
-    LOG_INFO("Delete streamMgr:");
 
     this->Connected = false;
     return PLUS_SUCCESS;
@@ -110,5 +122,5 @@ void vtkIEEListener::SetPortNumber(unsigned int port)
 //----------------------------------------------------------------------------
 bool vtkIEEListener::IsConnected()
 {
-  return this->Connected;
+  return this->StreamManager->IsConnected();
 }

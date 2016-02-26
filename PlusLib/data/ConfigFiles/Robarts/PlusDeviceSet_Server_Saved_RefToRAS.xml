@@ -11,7 +11,7 @@
       UseData="TRANSFORM"
       AcquisitionRate="10"
       LocalTimeOffsetSec="0.0"
-      SequenceMetafile="ReferenceToRASCalibration.mha"
+      SequenceFile="ReferenceToRASCalibration.mha"
       UseOriginalTimestamps="TRUE"
       RepeatEnabled="TRUE"
       ToolReferenceFrame="Tracker" >
@@ -43,7 +43,7 @@
     MaxTimeSpentWithProcessingMs="50" 
     ListeningPort="18944" 
     SendValidTransformsOnly="true" 
-    OutputChannelId="TrackedVideoStream" > 
+    OutputChannelId="TrackerStream" > 
     <DefaultClientInfo> 
       <MessageTypes> 
         <Message Type="TRANSFORM" />

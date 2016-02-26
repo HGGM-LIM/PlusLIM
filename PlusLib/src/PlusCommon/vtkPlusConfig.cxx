@@ -17,6 +17,11 @@
 #include "vtkDebugLeaksManager.h"
 #include "vtkObjectFactory.h"
 
+#if _WIN32
+#include <stdlib.h>
+#include <shlobj.h>
+#endif
+
 #if defined(unix) || defined(__unix__) || defined(__unix)
 #include "unistd.h"
 #endif
@@ -113,7 +118,6 @@ void vtkPlusConfig::SetInstance(vtkPlusConfig* instance)
 vtkPlusConfig::vtkPlusConfig()
 : DeviceSetConfigurationData(NULL)
 , ApplicationConfigurationData(NULL)
-, EditorApplicationExecutable(NULL)
 {
   this->ApplicationStartTimestamp = vtkAccurateTimer::GetInstance()->GetDateAndTimeString(); 
   
@@ -129,7 +133,6 @@ vtkPlusConfig::~vtkPlusConfig()
 {
   this->SetDeviceSetConfigurationData(NULL);
   this->SetApplicationConfigurationData(NULL);
-  this->SetEditorApplicationExecutable(NULL);
 }
 
 //-----------------------------------------------------------------------------
@@ -281,8 +284,23 @@ PlusStatus vtkPlusConfig::LoadApplicationConfiguration()
   }
   else
   {
-    LOG_DEBUG("Editor application executable is not set - default 'notepad.exe' will be used");
-    this->SetEditorApplicationExecutable("notepad.exe");
+    LOG_DEBUG("Editor application executable is not set - system default will be used");
+#if _WIN32
+    // Try to find Notepad++ in Program Files, if not found then use notepad.
+    char pf[MAX_PATH];
+    SHGetFolderPath(NULL,CSIDL_PROGRAM_FILES,NULL,0,pf );
+    std::string fullPath = std::string(pf) + "\\Notepad++\\notepad++.exe";
+    std::string application = "notepad.exe";
+    if( vtksys::SystemTools::FileExists(fullPath.c_str()) )
+    {
+      application = fullPath;
+    }
+    this->SetEditorApplicationExecutable(application.c_str());
+#elif defined(unix) || defined(__unix__) || defined(__unix)
+    this->SetEditorApplicationExecutable("gedit");
+#elif __APPLE__
+    this->SetEditorApplicationExecutable("TextEdit");
+#endif
     saveNeeded = true;
   }
 
@@ -388,7 +406,7 @@ PlusStatus vtkPlusConfig::WriteApplicationConfiguration()
   applicationConfigurationRoot->SetAttribute("LastDeviceSetConfigurationFileName", this->DeviceSetConfigurationFileName.c_str());
 
   // Save editor application
-  applicationConfigurationRoot->SetAttribute("EditorApplicationExecutable", this->EditorApplicationExecutable);
+  applicationConfigurationRoot->SetAttribute("EditorApplicationExecutable", this->EditorApplicationExecutable.c_str());
 
   // Save output path
   applicationConfigurationRoot->SetAttribute("OutputDirectory", this->OutputDirectory.c_str());
@@ -967,6 +985,18 @@ void vtkPlusConfig::SetDeviceSetConfigurationData(vtkXMLDataElement* deviceSetCo
     std::string plusLibVersion=PlusCommon::GetPlusLibVersionString();
     this->DeviceSetConfigurationData->SetAttribute("PlusRevision", plusLibVersion.c_str());
   }
+}
+
+//----------------------------------------------------------------------------
+const std::string& vtkPlusConfig::GetEditorApplicationExecutable() const
+{
+  return this->EditorApplicationExecutable;
+}
+
+//----------------------------------------------------------------------------
+void vtkPlusConfig::SetEditorApplicationExecutable(const std::string& _arg)
+{
+  this->EditorApplicationExecutable = _arg;
 }
 
 //-----------------------------------------------------------------------------

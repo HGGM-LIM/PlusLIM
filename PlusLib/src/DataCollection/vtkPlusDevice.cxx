@@ -9,8 +9,6 @@ See License.txt for details.
 #include "vtkInformation.h"
 #include "vtkInformationVector.h"
 #include "vtkMatrix4x4.h"
-#include "vtkMetaImageReader.h"
-#include "vtkMetaImageWriter.h"
 #include "vtkMultiThreader.h" 
 #include "vtkObjectFactory.h"
 #include "vtkPlusBuffer.h"
@@ -18,6 +16,7 @@ See License.txt for details.
 #include "vtkPlusDataSource.h"
 #include "vtkPlusDevice.h"
 #include "vtkRecursiveCriticalSection.h"
+#include "vtkSequenceIO.h"
 #include "vtkStreamingDemandDrivenPipeline.h"
 #include "vtkTrackedFrameList.h"
 #include "vtkWindows.h"
@@ -486,9 +485,9 @@ PlusStatus vtkPlusDevice::SetAcquisitionRate( double aRate )
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusDevice::WriteToMetafile( const char* filename, bool useCompression /*= false*/ )
+PlusStatus vtkPlusDevice::WriteToSequenceFile( const char* filename, bool useCompression /*= false*/ )
 {
-  LOCAL_LOG_TRACE("vtkPlusDevice::WriteToMetafile: " << filename); 
+  LOCAL_LOG_TRACE("vtkPlusDevice::WriteToSequenceFile: " << filename); 
 
   if ( this->GetNumberOfTools() == 0 )
   {
@@ -579,7 +578,7 @@ PlusStatus vtkPlusDevice::WriteToMetafile( const char* filename, bool useCompres
   }
 
   // Save tracked frames to metafile
-  if ( trackedFrameList->SaveToSequenceMetafile(filename, useCompression) != PLUS_SUCCESS )
+  if( vtkSequenceIO::Write(filename, trackedFrameList, trackedFrameList->GetImageOrientation(), useCompression) != PLUS_SUCCESS )
   {
     LOCAL_LOG_ERROR("Failed to save tracked frames to sequence metafile!"); 
     return PLUS_FAIL;
@@ -1309,6 +1308,21 @@ PlusStatus vtkPlusDevice::ToolTimeStampedUpdateWithoutFiltering(const char* aToo
 }
 
 //----------------------------------------------------------------------------
+PlusStatus vtkPlusDevice::AddVideoItemToVideoSources(const std::vector<vtkPlusDataSource*>& videoSources, const PlusVideoFrame& frame, long frameNumber, double unfilteredTimestamp/*=UNDEFINED_TIMESTAMP*/, double filteredTimestamp/*=UNDEFINED_TIMESTAMP*/, const TrackedFrame::FieldMapType* customFields /*= NULL*/)
+{
+  PlusStatus result(PLUS_SUCCESS);
+  for( std::vector<vtkPlusDataSource*>::const_iterator it = videoSources.begin(); it != videoSources.end(); ++it)
+  {
+    vtkPlusDataSource* source = *it;
+    if( source->AddItem(&frame, frameNumber, unfilteredTimestamp, filteredTimestamp, customFields) != PLUS_SUCCESS )
+    {
+      result = PLUS_FAIL;
+    }
+  }
+  return result;
+}
+
+//----------------------------------------------------------------------------
 PlusStatus vtkPlusDevice::ToolTimeStampedUpdate(const char* aToolSourceId, vtkMatrix4x4 *matrix, ToolStatus status, unsigned long frameNumber, double unfilteredtimestamp) 
 {
   if ( aToolSourceId == NULL )
@@ -1479,7 +1493,7 @@ int vtkPlusDevice::RequestData(vtkInformation *vtkNotUsed(request),
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusDevice::SetInputFrameSize(vtkPlusDataSource& aSource, int x, int y, int z)
 {
-  LOCAL_LOG_TRACE("vtkPlusDevice::SetInputFrameSize(" << x << ", " << y << ", " << z << ")");
+  //LOCAL_LOG_TRACE("vtkPlusDevice::SetInputFrameSize(" << x << ", " << y << ", " << z << ")");
 
   int* frameSize = aSource.GetInputFrameSize();
   if (x == frameSize[0] &&
@@ -1790,6 +1804,17 @@ PlusStatus vtkPlusDevice::GetVideoSource(const char* aSourceId, vtkPlusDataSourc
   }
 
   return PLUS_FAIL;
+}
+
+//----------------------------------------------------------------------------
+std::vector<vtkPlusDataSource*> vtkPlusDevice::GetVideoSources() const
+{
+  std::vector<vtkPlusDataSource*> results;
+  for(DataSourceContainerConstIterator it = this->VideoSources.begin(); it != this->VideoSources.end(); ++it )
+  {
+    results.push_back(it->second);
+  }
+  return results;
 }
 
 //----------------------------------------------------------------------------

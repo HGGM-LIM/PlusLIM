@@ -6,8 +6,9 @@ OPTION (PLUS_USE_POLARIS "Provide support for the NDI Polaris and Aurora" OFF)
 OPTION (PLUS_USE_CERTUS "Provide support for the NDI Certus" OFF)
 OPTION (PLUS_USE_MICRONTRACKER "Provide support for the Claron MicronTracker" OFF)
 OPTION (PLUS_USE_BRACHY_TRACKER "Provide support for the brachy stepper tracking device" OFF)
-OPTION (PLUS_USE_Ascension3DG "Provide support for the Ascension 3DG Tracker" OFF)
-OPTION (PLUS_USE_Ascension3DGm "Provide support for the Ascension 3DGm MedSafe Tracker" OFF)
+OPTION (PLUS_USE_USDIGITALENCODERS_TRACKER "Provide support for multiple USDigital encoders tracking device" OFF)
+OPTION (PLUS_USE_Ascension3DG "Provide support for the Ascension 3DG Tracker" ${ENABLED_BY_DEFAULT_ON_WINDOWS_ONLY})
+OPTION (PLUS_USE_Ascension3DGm "Provide support for the Ascension 3DGm MedSafe Tracker" ${ENABLED_BY_DEFAULT_ON_WINDOWS32_ONLY})
 OPTION (PLUS_USE_PHIDGET_SPATIAL_TRACKER "Provide support for the Phidget Spatial accelerometer" OFF)
 OPTION (PLUS_USE_3dConnexion_TRACKER "Provide support for the 3dConnexion 3d mouse" OFF)
 OPTION (PLUS_USE_ULTRASONIX_VIDEO "Provide support for Ultrasonix ultrasound scanners" OFF)
@@ -63,7 +64,7 @@ SET (DataCollection_SRCS
   )
 
 SET (DataCollection_HDRS)
-if (WIN32)  
+IF (WIN32)  
   SET (DataCollection_HDRS
     vtkDataCollector.h 
     vtkPlusDevice.h
@@ -87,7 +88,7 @@ if (WIN32)
     UsSimulatorVideo/vtkUsSimulatorVideoSource.h
     vtkUsImagingParameters.h
     )
-endif (WIN32)  
+ENDIF (WIN32)  
 
 SET (External_Libraries_Install)
 SET (External_Libraries_Debug)
@@ -102,31 +103,34 @@ SET (DataCollection_INCLUDE_DIRS
   ${CMAKE_CURRENT_SOURCE_DIR}/VirtualDevices  
   CACHE INTERNAL "" FORCE)
 
+# --------------------------------------------------------------------------
+# OptiTrack support
 IF (PLUS_USE_OPTITRACK)
   IF (WIN32)
 
     # PlusLib Files
-    SET (DataCollection_SRCS ${DataCollection_SRCS}
-    OptiTrack/vtkOptiTrackTracker.cxx
-    )
-
-    SET (DataCollection_HDRS ${DataCollection_HDRS}
-    OptiTrack/vtkOptiTrackTracker.h
-    )
-
+    SET (DataCollection_SRCS ${DataCollection_SRCS} 
+      OptiTrack/vtkOptiTrackTracker.cxx
+      )
+        
+      SET (DataCollection_HDRS ${DataCollection_HDRS}
+        OptiTrack/vtkOptiTrackTracker.h
+        )
+    
     SET (DataCollection_INCLUDE_DIRS ${DataCollection_INCLUDE_DIRS}
-    ${CMAKE_CURRENT_SOURCE_DIR}/OptiTrack
-    CACHE INTERNAL "" FORCE)
-
+         ${CMAKE_CURRENT_SOURCE_DIR}/OptiTrack 
+         CACHE INTERNAL "" FORCE)
+      
     # Find BiiGOptitrackControl Library
-    find_package (BiiGOptitrackControl REQUIRED PATHS "${NPTrackingTools_DIR}/BiiGOptitrackControl-build" NO_DEFAULT_PATH)
-    set( External_Libraries_Install ${External_Libraries_Install} ${NPTrackingTools_DIR}/install/bin/BiiGOptitrackControl${CMAKE_SHARED_LIBRARY_SUFFIX})
-    set( External_Libraries_Install ${External_Libraries_Install} ${NPTrackingTools_DIR}/install/lib/BiiGOptitrackControl${CMAKE_STATIC_LIBRARY_SUFFIX})
+    find_package (BiiGOptitrackControl REQUIRED)
+    set(External_Libraries_Install ${External_Libraries_Install} ${BiiGOptitrackControl_INSTALL_DIR}/bin/BiiGOptitrackControl${CMAKE_SHARED_LIBRARY_SUFFIX})
+    set(External_Libraries_Install ${External_Libraries_Install} ${BiiGOptitrackControl_INSTALL_DIR}/lib/BiiGOptitrackControl${CMAKE_STATIC_LIBRARY_SUFFIX})
+    set(DataCollection_INCLUDE_DIRS ${DataCollection_INCLUDE_DIRS} ${BiiGOptitrackControl_INSTALL_DIR}/inc CACHE INTERNAL "" FORCE )
 
     # Find NPTrackingTools Library
-    find_package(NPTrackingTools REQUIRED PATHS "${NPTrackingTools_DIR}/NPTrackingTools-build" NO_DEFAULT_PATH)
-    set( External_Libraries_Install ${External_Libraries_Install} ${NPTrackingTools_LIBRARY_DIR}/${NPTrackingTools_LIBRARY}${CMAKE_SHARED_LIBRARY_SUFFIX})
-    set( External_Libraries_Install ${External_Libraries_Install} ${NPTrackingTools_LIBRARY_DIR}/${NPTrackingTools_LIBRARY}${CMAKE_STATIC_LIBRARY_SUFFIX})
+    find_package(NPTrackingTools REQUIRED)
+    set(External_Libraries_Install ${External_Libraries_Install} ${NPTrackingTools_INSTALL_DIR}/bin/${NPTrackingTools_LIBRARY}${CMAKE_SHARED_LIBRARY_SUFFIX})
+    set(External_Libraries_Install ${External_Libraries_Install} ${NPTrackingTools_INSTALL_DIR}/lib/${NPTrackingTools_LIBRARY}${CMAKE_STATIC_LIBRARY_SUFFIX})
     set(DataCollection_INCLUDE_DIRS ${DataCollection_INCLUDE_DIRS} ${NPTrackingTools_INCLUDE_DIR} CACHE INTERNAL "" FORCE )
 
     set(DataCollection_LIBS ${DataCollection_LIBS} BiiGOptitrackControl ${NPTrackingTools_LIBRARY})
@@ -152,16 +156,16 @@ IF (PLUS_USE_OPTIMET_CONOPROBE)
       ${CMAKE_CURRENT_SOURCE_DIR}/Optimet 
       CACHE INTERNAL "" FORCE)
       
-	SET (DataCollection_LIBS ${DataCollection_LIBS}
-	${OPTIMETSMART32SDK_LIBRARY}
-	)
+    SET (DataCollection_LIBS ${DataCollection_LIBS}
+    ${OPTIMETSMART32SDK_LIBRARY}
+    )
 
-	SET ( External_Libraries_Install ${External_Libraries_Install}
-	${OPTIMETSMART32SDK_BINARY_DIR}/Smart32${CMAKE_SHARED_LIBRARY_SUFFIX}
-	)
-	SET ( External_Libraries_Install ${External_Libraries_Install}
-	${OPTIMETSMART32SDK_BINARY_DIR}/NewProbeDialog${CMAKE_SHARED_LIBRARY_SUFFIX}
-	)
+    SET ( External_Libraries_Install ${External_Libraries_Install}
+    ${OPTIMETSMART32SDK_BINARY_DIR}/Smart32${CMAKE_SHARED_LIBRARY_SUFFIX}
+    )
+    SET ( External_Libraries_Install ${External_Libraries_Install}
+    ${OPTIMETSMART32SDK_BINARY_DIR}/NewProbeDialog${CMAKE_SHARED_LIBRARY_SUFFIX}
+    )
 ENDIF (PLUS_USE_OPTIMET_CONOPROBE)
 
 # --------------------------------------------------------------------------
@@ -200,11 +204,11 @@ IF (PLUS_USE_POLARIS)
     PolarisTracking/vtkNDITracker.cxx
     )
   
-  if (WIN32)  
+  IF (WIN32)  
     SET (DataCollection_HDRS ${DataCollection_HDRS}
       PolarisTracking/vtkNDITracker.h
       )
-  endif (WIN32)
+  ENDIF (WIN32)
 
   SET (DataCollection_INCLUDE_DIRS ${DataCollection_INCLUDE_DIRS}
     ${CMAKE_CURRENT_SOURCE_DIR}/PolarisTracking
@@ -222,11 +226,11 @@ IF (PLUS_USE_MICRONTRACKER)
     MicronTracking/vtkMicronTracker.cxx
   )
   
-  if (WIN32)  
+  IF (WIN32)  
     SET (DataCollection_HDRS ${DataCollection_HDRS}
       MicronTracking/vtkMicronTracker.h
       )
-  endif (WIN32)
+  ENDIF (WIN32)
 
   SET (DataCollection_INCLUDE_DIRS ${DataCollection_INCLUDE_DIRS} 
     ${CMAKE_CURRENT_SOURCE_DIR}/MicronTracking 
@@ -270,10 +274,10 @@ IF (PLUS_USE_BRACHY_TRACKER)
   SET (DataCollection_SRCS ${DataCollection_SRCS}
     BrachyTracking/vtkBrachyTracker.cxx
     BrachyTracking/CmsBrachyStepper.cxx
-    BrachyTracking/CivcoBrachyStepper.cxx 
+    BrachyTracking/CivcoBrachyStepper.cxx
   )
   
-  if (WIN32)  
+  IF (WIN32)  
     SET (DataCollection_HDRS
       ${DataCollection_HDRS}
       BrachyTracking/vtkBrachyTracker.h
@@ -281,7 +285,7 @@ IF (PLUS_USE_BRACHY_TRACKER)
       BrachyTracking/BrachyStepper.h 
       BrachyTracking/CivcoBrachyStepper.h
       )
-  endif (WIN32)
+  ENDIF (WIN32)
     
   SET (DataCollection_INCLUDE_DIRS ${DataCollection_INCLUDE_DIRS} 
     ${CMAKE_CURRENT_SOURCE_DIR}/BrachyTracking
@@ -299,6 +303,39 @@ IF (PLUS_USE_BRACHY_TRACKER)
     
 ENDIF (PLUS_USE_BRACHY_TRACKER)
 
+
+#--------------------------------------------------------------------------
+# USDigitalEncoders tracking support
+IF (PLUS_USE_USDIGITALENCODERS_TRACKER)
+
+  SET (DataCollection_SRCS ${DataCollection_SRCS}
+    USDigitalEncodersTracking/vtkUSDigitalEncodersTracker.cxx
+  )
+  
+  IF (WIN32)  
+    SET (DataCollection_HDRS
+      ${DataCollection_HDRS}
+      USDigitalEncodersTracking/vtkUSDigitalEncodersTracker.h
+      )
+  ENDIF (WIN32)
+    
+  SET (DataCollection_INCLUDE_DIRS ${DataCollection_INCLUDE_DIRS} 
+    ${CMAKE_CURRENT_SOURCE_DIR}/USDigitalEncodersTracking
+    ${USDIGITAL_SEI_INCLUDE_DIR}
+    CACHE INTERNAL "" FORCE)    
+  
+  SET (DataCollection_LIBS ${DataCollection_LIBS}
+    ${USDIGITAL_SEI_LIB_DIR}/SEIDrv32${CMAKE_STATIC_LIBRARY_SUFFIX}
+    )
+
+  SET ( External_Libraries_Install ${External_Libraries_Install}
+    ${USDIGITAL_SEI_BINARY_DIR}/SEIDrv32${CMAKE_SHARED_LIBRARY_SUFFIX}
+    ${USDIGITAL_SEI_BINARY_DIR}/SEISrv32.exe
+    )
+
+ENDIF (PLUS_USE_USDIGITALENCODERS_TRACKER)
+
+
 #--------------------------------------------------------------------------
 # Ascension 3DG support (trakSTAR)
 IF( PLUS_USE_Ascension3DG )
@@ -307,25 +344,33 @@ IF( PLUS_USE_Ascension3DG )
     Ascension3DGTracking/vtkAscension3DGTracker.cxx 
     )
     
-  if (WIN32)
+  IF (WIN32)
     SET (DataCollection_HDRS ${DataCollection_HDRS} 
       Ascension3DGTracking/vtkAscension3DGTracker.h 
       )
-  endif (WIN32)
+  ENDIF (WIN32)
 
   SET (DataCollection_INCLUDE_DIRS ${DataCollection_INCLUDE_DIRS} 
     ${ATC_TRAKSTAR_INCLUDE_DIR}
     ${CMAKE_CURRENT_SOURCE_DIR}/Ascension3DGTracking
     CACHE INTERNAL "" FORCE)
 
-  SET (DataCollection_LIBS ${DataCollection_LIBS}
-    ${ATC_TRAKSTAR_LIB_DIR}/ATC3DG${CMAKE_STATIC_LIBRARY_SUFFIX}
-    )
-  
-  SET ( External_Libraries_Install ${External_Libraries_Install}
-    ${ATC_TRAKSTAR_BINARY_DIR}/ATC3DG${CMAKE_SHARED_LIBRARY_SUFFIX} 
-    )
-        
+  IF ( ${CMAKE_GENERATOR} MATCHES "Win64" )
+    SET (DataCollection_LIBS ${DataCollection_LIBS}
+      ${ATC_TRAKSTAR_LIB_DIR}/ATC3DG64${CMAKE_STATIC_LIBRARY_SUFFIX}
+      )
+    SET ( External_Libraries_Install ${External_Libraries_Install}
+      ${ATC_TRAKSTAR_BINARY_DIR}/ATC3DG64${CMAKE_SHARED_LIBRARY_SUFFIX} 
+      )
+  ELSE( ${CMAKE_GENERATOR} MATCHES "Win64" )
+    SET (DataCollection_LIBS ${DataCollection_LIBS}
+      ${ATC_TRAKSTAR_LIB_DIR}/ATC3DG${CMAKE_STATIC_LIBRARY_SUFFIX}
+      )
+    SET ( External_Libraries_Install ${External_Libraries_Install}
+      ${ATC_TRAKSTAR_BINARY_DIR}/ATC3DG${CMAKE_SHARED_LIBRARY_SUFFIX} 
+      )
+  ENDIF( ${CMAKE_GENERATOR} MATCHES "Win64" )
+
 ENDIF( PLUS_USE_Ascension3DG )
 
 #--------------------------------------------------------------------------
@@ -333,9 +378,9 @@ ENDIF( PLUS_USE_Ascension3DG )
 IF( PLUS_USE_Ascension3DGm )
         
   SET (DataCollection_SRCS ${DataCollection_SRCS} Ascension3DGTracking/vtkAscension3DGmTracker.cxx )
-  if (WIN32)  
+  IF (WIN32)  
     SET (DataCollection_HDRS ${DataCollection_HDRS} Ascension3DGTracking/vtkAscension3DGmTracker.h )
-  endif (WIN32)
+  ENDIF (WIN32)
   
   SET (DataCollection_INCLUDE_DIRS ${DataCollection_INCLUDE_DIRS} 
     ${ATC_MEDSAFE_INCLUDE_DIR}
@@ -367,9 +412,9 @@ IF( PLUS_USE_PHIDGET_SPATIAL_TRACKER )
   SET (DataCollection_SRCS ${DataCollection_SRCS} 
     PhidgetSpatialTracking/vtkPhidgetSpatialTracker.cxx 
     )
-  if (WIN32)  
+  IF (WIN32)  
     SET (DataCollection_HDRS ${DataCollection_HDRS} PhidgetSpatialTracking/vtkPhidgetSpatialTracker.h )
-  endif (WIN32)
+  ENDIF (WIN32)
   
   SET (DataCollection_INCLUDE_DIRS ${DataCollection_INCLUDE_DIRS} 
     ${PHIDGET_SPATIAL_INCLUDE_DIR}
@@ -392,17 +437,17 @@ ENDIF( PLUS_USE_PHIDGET_SPATIAL_TRACKER )
 
 IF( PLUS_USE_3dConnexion_TRACKER )
 
-  if (WIN32)  # the 3D mouse is currently supported on Windows only
+  IF (WIN32)  # the 3D mouse is currently supported on Windows only
     SET (DataCollection_SRCS ${DataCollection_SRCS} 
       3dConnexionTracking/vtk3dConnexionTracker.cxx
       )
-    if (WIN32)  
+    IF (WIN32)  
       SET (DataCollection_HDRS ${DataCollection_HDRS} 3dConnexionTracking/vtk3dConnexionTracker.h )
-    endif (WIN32)  
+    ENDIF (WIN32)  
     SET (DataCollection_INCLUDE_DIRS ${DataCollection_INCLUDE_DIRS} 
       ${CMAKE_CURRENT_SOURCE_DIR}/3dConnexionTracking
       CACHE INTERNAL "" FORCE)
-  endif (WIN32)
+  ENDIF (WIN32)
   
 ENDIF( PLUS_USE_3dConnexion_TRACKER )
 
@@ -412,9 +457,9 @@ ENDIF( PLUS_USE_3dConnexion_TRACKER )
   SET (DataCollection_SRCS ${DataCollection_SRCS} 
     ChRobotics/vtkChRoboticsTracker.cxx
     )
-  if (WIN32)  
+  IF (WIN32)  
     SET (DataCollection_HDRS ${DataCollection_HDRS} ChRobotics/vtkChRoboticsTracker.h )
-  endif (WIN32)
+  ENDIF (WIN32)
   
   SET (DataCollection_INCLUDE_DIRS ${DataCollection_INCLUDE_DIRS} 
     ${CMAKE_CURRENT_SOURCE_DIR}/ChRobotics
@@ -426,9 +471,9 @@ ENDIF( PLUS_USE_3dConnexion_TRACKER )
   SET (DataCollection_SRCS ${DataCollection_SRCS} 
     MicrochipTracking/vtkMicrochipTracker.cxx
     )
-  if (WIN32)  
+  IF (WIN32)  
     SET (DataCollection_HDRS ${DataCollection_HDRS} MicrochipTracking/vtkMicrochipTracker.h )
-  endif (WIN32)
+  ENDIF (WIN32)
   
   SET (DataCollection_INCLUDE_DIRS ${DataCollection_INCLUDE_DIRS} 
     ${CMAKE_CURRENT_SOURCE_DIR}/MicrochipTracking
@@ -563,11 +608,11 @@ IF (PLUS_USE_BKPROFOCUS_VIDEO)
   SET (DataCollection_SRCS ${DataCollection_SRCS}
     BkProFocus/vtkBkProFocusOemVideoSource.cxx 
     )
-  if (WIN32)  
+  IF (WIN32)  
     SET (DataCollection_HDRS ${DataCollection_HDRS}
       BkProFocus/vtkBkProFocusOemVideoSource.h
       )
-  endif (WIN32)
+  ENDIF (WIN32)
   SET (DataCollection_INCLUDE_DIRS ${DataCollection_INCLUDE_DIRS} 
     ${GRABBIELIB_SOURCE_DIR}/AcquisitionLibrary
     ${GRABBIELIB_SOURCE_DIR}/BkmDataFileLib
@@ -589,12 +634,12 @@ IF (PLUS_USE_BKPROFOCUS_VIDEO)
     BkProFocus/vtkBkProFocusCameraLinkVideoSource.cxx
     BkProFocus/PlusBkProFocusCameraLinkReceiver.cxx
     )
-  if (WIN32)  
+  IF (WIN32)  
     SET (DataCollection_HDRS ${DataCollection_HDRS}
       BkProFocus/vtkBkProFocusCameraLinkVideoSource.h
       BkProFocus/PlusBkProFocusCameraLinkReceiver.h
       )
-  endif (WIN32)  
+  ENDIF (WIN32)  
   SET (DataCollection_LIBS ${DataCollection_LIBS} 
     ${DALSASAPERA_LIB_DIR}/SapClassBasic${CMAKE_STATIC_LIBRARY_SUFFIX}
     )
@@ -611,13 +656,13 @@ IF (PLUS_USE_ICCAPTURING_VIDEO)
     ICCapturing/vtkICCapturingSource.cxx
     ICCapturing/ICCapturingListener.cxx
     )  
-  if (WIN32)  
+  IF (WIN32)  
     SET (DataCollection_HDRS
       ${DataCollection_HDRS}
       ICCapturing/vtkICCapturingSource.h
       ICCapturing/ICCapturingListener.h 
       )
-  endif (WIN32)  
+  ENDIF (WIN32)  
   # Look for ICCapturing libraries   
   SET (DataCollection_INCLUDE_DIRS ${DataCollection_INCLUDE_DIRS} 
     ${ICCAPTURING_INCLUDE_DIR} 
@@ -646,12 +691,12 @@ IF (PLUS_USE_STEALTHLINK)
     ${DataCollection_SRCS}
     StealthLink/vtkStealthLinkTracker.cxx
     )  
-  if (WIN32)  
+  IF (WIN32)  
     SET (DataCollection_HDRS
       ${DataCollection_HDRS}
       StealthLink/vtkStealthLinkTracker.h
       )
-  endif (WIN32)  
+  ENDIF (WIN32)  
   
   SET (DataCollection_INCLUDE_DIRS ${DataCollection_INCLUDE_DIRS} 
     ${STEALTHLINK_INCLUDE_DIRS} 
@@ -712,11 +757,11 @@ IF (PLUS_USE_VFW_VIDEO)
   SET (DataCollection_SRCS ${DataCollection_SRCS} 
     VideoForWindows/vtkWin32VideoSource2.cxx
     )
-  if (WIN32)  
+  IF (WIN32)  
     SET (DataCollection_HDRS ${DataCollection_HDRS}
       VideoForWindows/vtkWin32VideoSource2.h
       )
-  endif (WIN32)  
+  ENDIF (WIN32)  
   SET (DataCollection_LIBS ${DataCollection_LIBS} 
     ws2_32
     )    
@@ -736,11 +781,11 @@ IF (PLUS_USE_MMF_VIDEO)
   SET (DataCollection_SRCS ${DataCollection_SRCS} 
     MicrosoftMediaFoundation/vtkMmfVideoSource.cxx 
     )
-  if (WIN32)  
+  IF (WIN32)  
     SET (DataCollection_HDRS ${DataCollection_HDRS}
       MicrosoftMediaFoundation/vtkMmfVideoSource.h 
       )
-  endif (WIN32)
+  ENDIF (WIN32)
   SET (DataCollection_INCLUDE_DIRS ${DataCollection_INCLUDE_DIRS} 
     ${CMAKE_CURRENT_SOURCE_DIR}/MicrosoftMediaFoundation
     ${CMAKE_CURRENT_SOURCE_DIR}/MicrosoftMediaFoundation/InputCaptureLibrary
@@ -767,11 +812,11 @@ IF (PLUS_USE_EPIPHAN)
   SET (DataCollection_SRCS ${DataCollection_SRCS} 
     Epiphan/vtkEpiphanVideoSource.cxx
     )
-  if (WIN32)  
+  IF (WIN32)  
     SET (DataCollection_HDRS ${DataCollection_HDRS}
       Epiphan/vtkEpiphanVideoSource.h
       )
-  endif (WIN32)  
+  ENDIF (WIN32)  
   SET (DataCollection_LIBS ${DataCollection_LIBS} 
     ${EPIPHAN_LIB_DIR}/frmgrab${CMAKE_STATIC_LIBRARY_SUFFIX}
     )    
@@ -794,11 +839,11 @@ IF (PLUS_USE_CAPISTRANO_VIDEO)
   SET (DataCollection_SRCS ${DataCollection_SRCS} 
     Capistrano/vtkCapistranoVideoSource.cxx
     )
-  if (WIN32)  
+  IF (WIN32)  
     SET (DataCollection_HDRS ${DataCollection_HDRS}
       Capistrano/vtkCapistranoVideoSource.h
       )
-  endif (WIN32)
+  ENDIF (WIN32)
   SET (DataCollection_LIBS ${DataCollection_LIBS} 
     ${CAPISTRANO_LIBRARY_DIR}/BmodeDLL${CMAKE_STATIC_LIBRARY_SUFFIX}
     ${CAPISTRANO_LIBRARY_DIR}/USBprobeDLL${CMAKE_STATIC_LIBRARY_SUFFIX}
@@ -845,11 +890,11 @@ IF (PLUS_USE_INTERSON_VIDEO)
   SET (DataCollection_SRCS ${DataCollection_SRCS} 
     Interson/vtkIntersonVideoSource.cxx
     )
-  if (WIN32)  
+  IF (WIN32)  
     SET (DataCollection_HDRS ${DataCollection_HDRS}
       Interson/vtkIntersonVideoSource.h
       )
-  endif (WIN32)
+  ENDIF (WIN32)
   SET (DataCollection_LIBS ${DataCollection_LIBS} 
     ${INTERSON_LIBRARY_DIR}/BmodeDLL${CMAKE_STATIC_LIBRARY_SUFFIX}
     ${INTERSON_LIBRARY_DIR}/USBprobeDLL${CMAKE_STATIC_LIBRARY_SUFFIX}
@@ -888,11 +933,11 @@ IF (PLUS_USE_INTERSONSDKCXX_VIDEO)
   SET (DataCollection_SRCS ${DataCollection_SRCS} 
     IntersonSDKCxx/vtkIntersonSDKCxxVideoSource.cxx
     )
-  if (WIN32)  
+  IF (WIN32)  
     SET (DataCollection_HDRS ${DataCollection_HDRS}
       IntersonSDKCxx/vtkIntersonSDKCxxVideoSource.h
       )
-  endif (WIN32)
+  ENDIF (WIN32)
   SET (DataCollection_LIBS ${DataCollection_LIBS} 
     ${IntersonSDKCxx_LIBRARIES}
     )

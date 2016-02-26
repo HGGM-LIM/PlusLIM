@@ -60,10 +60,11 @@ Ulterius interface specific Device attributes:
   - TRUE: Image will be clipped to the region of interest that was specified at the time when the connection to the device was established. The image size depends on the imaging depth.
   - FALSE: Regardless of imaging depth, zoom, etc. settings, the image size is always the same. Black border appears outside the region of interest.
 - \xmlAtt \b ImageToTransducerTransformName If specified then Image To Transducer transform is added as a custom field to the image data with the specified name (see \ref CommonCoordinateSystems). Recommended value "ImageToTransducer". If the TransducerToProbe constant transform is specified in the configuration file then this transform allows automatic computation of the ImageToProbe transform at any imaging depth. \OptionalAtt{ }
-- \xmlAtt \b SoundVelocity The speed of sound \c [m/s].  The minimum and maximum allowed value is specified on the Ultrasound computer, in the Exam software directory in the imaging.set.xml" file (the parameter is "soundvelocity"). If an out of range value is specified in the configuration file then the Ultrasound system will ignore it. If the attribute is not specified then the current setting is kept.  \OptionalAtt{ }
+- \xmlAtt \b SoundVelocity The speed of sound \c [m/s].  The minimum and maximum allowed value is specified on the Ultrasound computer, in the Exam software directory in the \c imaging.set.xml file (the parameter is \c soundvelocity). If an out of range value is specified in the configuration file then the Ultrasound system will ignore it. If the attribute is not specified then the current setting is kept. \OptionalAtt{ }
 - \xmlAtt \b DynRange DynRange \c [dB] of B-mode ultrasound. If not specified the current value is kept. \OptionalAtt{ }
 - \xmlAtt \b Sector Sector \c [%] of B-mode ultrasound; valid range: 0-100. If not specified the current value is kept. \OptionalAtt{ }
 - \xmlAtt \b CompressionStatus When imaging with the EC59 probe, if compression is disabled (\b CompressionStatus \c ="0"), then a lot of BMode frames are lost. The reason for this is the fact that scan-conversion is performed on the CPU. Set \b CompressionStatus \c ="1" to prevent frame loss. \OptionalAtt{0}
+- \xmlAtt \b TimeGainCompensation Time gain compensation \c [8 int values] If not specified then the current setting is used.\OptionalAtt{ }
 - \xmlAtt \b SharedMemoryStatus When this flag is enabled ("1") and local access is used the TCP is bypasssed.\OptionalAtt{0}
 - \xmlAtt \b ConnectionSetupDelayMs Time required for setting up the connection. The value depends on the probe type, typical values are between 2000-3000 \c [ms]. \OptionalAtt{3000}
 - \xmlAtt \b ImageGeometryOutputEnabled Add image geometry information (depth, spacing, transducer origin) to the output. When imaging depth is changed then usually transducer origin position and pixel spacing is changed as a result. SonixVideo can provide depth, pixel spacing, and transducer origin (position of the center transducer element in the image, in pixels) information as custom frame fields that can be broadcasted through OpenIGTLink as STRING messages, using the names "DepthMm", "PixelSpacingMm", and "TransducerOriginPix" (see \ref SonixVideoExampleConfigFileUlterius).\OptionalAtt{FALSE}
@@ -97,9 +98,9 @@ The calibration remains valid even if the imaging depth is changed.
 
 \include "data/ConfigFiles/PlusDeviceSet_Server_Ultrasonix_L14-5.xml"
 
-\section SonixVideoExampleConfigFilePorta Example configuration file for B-mode acquisition using Porta interface
+\section SonixVideoExampleConfigFilePorta Example configuration file for 3D B-mode acquisition by a motorized probe using Porta interface
 
-\include "data/ConfigFiles/PlusDeviceSet_Server_Ultrasonix_L14-5_Porta.xml"
+\include "data/ConfigFiles/PlusDeviceSet_Server_Ultrasonix_4DL14-5_Porta_calibrated.xml"
 
 \section SonixVideoExampleConfigFileRf Example configuration file for dual B-mode and RF-mode acquisition using Ulterius interface
 

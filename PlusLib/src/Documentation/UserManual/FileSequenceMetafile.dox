@@ -41,11 +41,11 @@ There are two variants of the file format:
 
 Use mha_read_transforms.m, mha_read_volume.m, and mha_write_volume.m functions, available from:
 
-https://subversion.assembla.com/svn/plus/trunk/sandbox/MatlabUtils/
+https://www.assembla.com/spaces/plus/subversion/source/HEAD/trunk/MatlabUtils
 
 \section FileSequenceMetafileCompression Compression
 
 Image data can be stored in a compressed way to conserve disk space, without any image quality degradation.
-Use the \ref ApplicationEditSeqMetaFile tool to compress/uncompress image data.
+Use the \ref ApplicationEditSequenceFile tool to compress/uncompress image data.
 
 */

@@ -128,19 +128,19 @@ ADD_TEST(vtkMetaImageSequenceIOTest
   )
 SET_TESTS_PROPERTIES( vtkMetaImageSequenceIOTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
  
-#***************************  ViewSeqMetaFile  ***************************
-ADD_EXECUTABLE(ViewSeqMetaFile ViewSeqMetaFile.cxx )
-TARGET_LINK_LIBRARIES(ViewSeqMetaFile vtkDataCollection )
-GENERATE_HELP_DOC(ViewSeqMetaFile)
+#***************************  ViewSequenceFile  ***************************
+ADD_EXECUTABLE(ViewSequenceFile ViewSequenceFile.cxx )
+TARGET_LINK_LIBRARIES(ViewSequenceFile vtkDataCollection )
+GENERATE_HELP_DOC(ViewSequenceFile)
 
-ADD_TEST(ViewSeqMetaFileTest
-  ${EXECUTABLE_OUTPUT_PATH}/ViewSeqMetaFile
+ADD_TEST(ViewSequenceFileTest
+  ${EXECUTABLE_OUTPUT_PATH}/ViewSequenceFile
   --source-seq-file=${TestDataDir}/SpinePhantomFreehand.mha
   --config-file=${ConfigFilesDir}/Testing/PlusDeviceSet_SpinePhantomFreehandReconstructionOnly.xml
   --image-to-reference-transform=ImageToTracker
   --rendering-off
   )
-SET_TESTS_PROPERTIES( ViewSeqMetaFileTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
+SET_TESTS_PROPERTIES( ViewSequenceFileTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 
 #***************************  itkFcsvReaderTest1.cxx ***************************
 ADD_EXECUTABLE(itkFcsvReaderTest1 itkFcsvReaderTest1.cxx )
@@ -409,6 +409,12 @@ IF (PLUS_USE_BRACHY_TRACKER)
     ADD_EXECUTABLE(CivcoBrachyStepperTest CivcoBrachyStepperTest.cxx)
     TARGET_LINK_LIBRARIES(CivcoBrachyStepperTest vtkDataCollection ${VTK_LIBRARIES} vtkPlusCommon)
 ENDIF (PLUS_USE_BRACHY_TRACKER) 
+
+#*************************** USDigitalEncoderStepperTest ***************************
+IF (PLUS_USE_USDIGITALENCODERS_TRACKER)
+    ADD_EXECUTABLE(vtkUSDigitalEncodersTrackerTest vtkUSDigitalEncodersTrackerTest.cxx)
+    TARGET_LINK_LIBRARIES(vtkUSDigitalEncodersTrackerTest vtkDataCollection ${VTK_LIBRARIES} vtkPlusCommon)
+ENDIF (PLUS_USE_USDIGITALENCODERS_TRACKER) 
   
 #*************************** TransformInterpolationTest ***************************
 ADD_EXECUTABLE(TransformInterpolationTest TransformInterpolationTest.cxx)
@@ -438,7 +444,7 @@ ENDIF( PLUS_USE_OpenIGTLink )
 INSTALL(
   TARGETS 
     PlusVersion 
-    ViewSeqMetaFile
+    ViewSequenceFile
     TrackingTest
   DESTINATION bin
   COMPONENT RuntimeExecutables

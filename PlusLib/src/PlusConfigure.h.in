@@ -95,6 +95,7 @@
 #cmakedefine PLUS_USE_STEALTHLINK
 #cmakedefine PLUS_USE_IntuitiveDaVinci
 #cmakedefine PLUS_USE_PHILIPS_3D_ULTRASOUND
+#cmakedefine PLUS_USE_USDIGITALENCODERS_TRACKER
 
 #cmakedefine PLUS_USE_SIMPLE_TIMER
 
@@ -111,7 +112,7 @@
 #define LINUXTOLERANCEPERCENT 8
 
 // Frequently needed STL includes
-#include <strstream>
+#include <sstream>
 #include <iostream>
 
 // Frequently needed VTK includes

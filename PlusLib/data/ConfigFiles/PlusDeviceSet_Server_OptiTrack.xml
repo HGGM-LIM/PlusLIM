@@ -1,48 +1,40 @@
 <PlusConfiguration version="2.1">
 
   <DataCollection StartupDelaySec="1.0">
-    <DeviceSet
+    <DeviceSet 
       Name="PlusServer: OptiTrack"
       Description="Broadcasting tracking data through OpenIGTLink."
     />
+    
     <Device
-      Id="TrackerDevice"
+      Id="TrackerDevice" 
       Type="OptiTrack"
       ToolReferenceFrame="Tracker"
-      AcquisitionRate="100"
-      LocalTimeOffsetSec="0"
-      CalibrationFile="PATH_TO/Calibration.cal"
-      Exposition="7"
-      Threshold="200"
-      Illumination="14"
-      >
+      AcquisitionRate="100">
       <DataSources>
-        <DataSource Type="Tool" Id="PolarisPointerTip" ConfFile="PATH_TO/PolarisPointerTipXML.xml"  />
-        <DataSource Type="Tool" Id="RigidBody" ConfFile="PATH_TO/RigidBodyXML.xml"  />
+        <DataSource Type="Tool" Id="Stylus" PortName="Stylus" />
       </DataSources>
       <OutputChannels>
         <OutputChannel Id="TrackerStream">
-          <DataSource Id="PolarisPointer" />
-          <DataSource Id="RigidBody" />
+          <DataSource Id="Stylus" />
         </OutputChannel>
       </OutputChannels>
     </Device>
 
   </DataCollection>
 
-  <PlusOpenIGTLinkServer
-    MaxNumberOfIgtlMessagesToSend="1"
-    MaxTimeSpentWithProcessingMs="50"
-    ListeningPort="18944"
-    SendValidTransformsOnly="true"
-    OutputChannelId="TrackerStream" >
-    <DefaultClientInfo>
-      <MessageTypes>
+  <PlusOpenIGTLinkServer 
+    MaxNumberOfIgtlMessagesToSend="1" 
+    MaxTimeSpentWithProcessingMs="50" 
+    ListeningPort="18944" 
+    SendValidTransformsOnly="true" 
+    OutputChannelId="TrackerStream" > 
+    <DefaultClientInfo> 
+      <MessageTypes> 
         <Message Type="TRANSFORM" />
       </MessageTypes>
-      <TransformNames>
-        <Transform Name="PolarisPointerTipToTracker" />
-        <Transform Name="RigidBodyToTracker" />
+      <TransformNames> 
+        <Transform Name="StylusToTracker" />
       </TransformNames>
     </DefaultClientInfo>
   </PlusOpenIGTLinkServer>

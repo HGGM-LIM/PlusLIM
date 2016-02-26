@@ -122,6 +122,9 @@ public:
   /*!  Get a pointer to the single existing object instance */
   static vtkPlusLogger* Instance(); 
 
+  /*! Convert a string into a log level type */
+  static LogLevelType GetLogLevelType(const std::string& logLevelString);
+
   /*!
     Add a new message to the log. Instead of using this method directly it is advisable
     to use the convenience macros: LOG_ERROR, LOG_WARNING, LOG_INFO, LOG_DEBUG, LOG_TRACE
@@ -131,7 +134,15 @@ public:
     \param lineNumber Line number within the file where the message comes from
     \param optionalPrefix a prefix to append after the timestamp, but before the logged message
   */
-  void LogMessage(LogLevelType level, const char *msg, const char* fileName, int lineNumber, const char* optionalPrefix = NULL); 
+  void LogMessage(LogLevelType level, const char *msg, const char* fileName, int lineNumber, const char* optionalPrefix = NULL);
+
+  /*!
+    Add a new message to the log without line number of filename
+    \param level Level of the current message
+    \param msg Text of the log message
+    \param optionalPrefix a prefix to append after the timestamp, but before the logged message
+  */
+  void LogMessage(LogLevelType level, const std::string& msg, const std::string& optionalPrefix = std::string(""));
   
   /*! Get the current log level. Messages that has a higher level than the current log level are ignored. */
   int GetLogLevel();

@@ -225,14 +225,22 @@ namespace PlusCommon
   vtkPlusCommonExport bool IsClippingRequested(const int clipOrigin[3], const int clipSize[3]);
   vtkPlusCommonExport bool IsClippingWithinExtents(const int clipOrigin[3], const int clipSize[3], const int extents[6]);
 
-  vtkPlusCommonExport void SplitStringIntoTokens(const std::string &s, char delim, std::vector<std::string> &elems);
+  vtkPlusCommonExport void SplitStringIntoTokens(const std::string &s, char delim, std::vector<std::string> &elems, bool keepEmptyParts=true);
+  vtkPlusCommonExport void JoinTokensIntoString(const std::vector<std::string>& elems, std::string& output);
+  vtkPlusCommonExport void JoinTokensIntoString(const std::vector<std::string>& elems, std::string& output, char separator);
 
   vtkPlusCommonExport PlusStatus CreateTemporaryFilename( std::string& aString, const std::string& anOutputDirectory );
 
   /*! Trim whitespace characters from the left and right */
-  vtkPlusCommonExport void Trim(std::string &str);
-  
+  vtkPlusCommonExport std::string Trim(std::string &str);
   vtkPlusCommonExport std::string Trim(const char* c);
+  
+  /*!
+    On some systems fwrite may fail if a large chunk of data is attempted to written in one piece.
+    This method writes the data in smaller chunks as long as all data is written or no data
+    can be written anymore.
+  */
+  vtkPlusCommonExport PlusStatus RobustFwrite(FILE* fileHandle, void* data, size_t dataSize, size_t &writtenSize);  
 
   /*!
     Writes an XML element to file. The output is nicer that with the built-in vtkXMLDataElement::PrintXML, as

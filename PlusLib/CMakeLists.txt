@@ -1,8 +1,9 @@
 PROJECT(PlusLib)
 
-CMAKE_MINIMUM_REQUIRED(VERSION 2.8)
+CMAKE_MINIMUM_REQUIRED(VERSION 2.8.11)
 if(COMMAND cmake_policy)
   cmake_policy(SET CMP0003 NEW)
+  cmake_policy(SET CMP0020 NEW)
 endif(COMMAND cmake_policy)
 
 # ------------------------------------------------------------------------
@@ -42,18 +43,18 @@ OPTION(BUILD_TESTING
 # Testing
 #
 
-# Need subversion for the automatic update of the repository
-find_package(Subversion)
-# IF(Subversion_FOUND)
-  # Subversion_WC_INFO(${CMAKE_CURRENT_SOURCE_DIR} PLUSLIB_SVN_INFO)
-  # MESSAGE(STATUS "Current revision is ${PLUSLIB_SVN_INFO_WC_REVISION}") 
-  # SET(PLUSLIB_REVISION ${PLUSLIB_SVN_INFO_WC_REVISION})
-# ENDIF(Subversion_FOUND)
-
-# Fake revision number since we are not using the PLUS trunk but our own repo
-SET(PLUSLIB_REVISION "4225")
-
-SET( PLUSLIB_SVN_EXECUTABLE ${Subversion_SVN_EXECUTABLE} )
+IF (PLUS_OFFLINE_BUILD)
+  SET(PLUSLIB_REVISION "x")
+ELSE(PLUS_OFFLINE_BUILD)
+  # Need subversion for the automatic update of the repository
+  find_package(Subversion)
+  IF(Subversion_FOUND)
+    Subversion_WC_INFO(${CMAKE_CURRENT_SOURCE_DIR} PLUSLIB_SVN_INFO)
+    MESSAGE(STATUS "Current revision is ${PLUSLIB_SVN_INFO_WC_REVISION}") 
+    SET(PLUSLIB_REVISION ${PLUSLIB_SVN_INFO_WC_REVISION})
+  ENDIF(Subversion_FOUND)
+  SET( PLUSLIB_SVN_EXECUTABLE ${Subversion_SVN_EXECUTABLE} )
+ENDIF(PLUS_OFFLINE_BUILD)
 
 INCLUDE(CTest)
 
@@ -64,7 +65,7 @@ INCLUDE(CTest)
 SET( PLUSLIB_DATA_DIR ${CMAKE_CURRENT_SOURCE_DIR}/data)
 SET( PLUSLIB_TOOLS_DIR ${CMAKE_CURRENT_SOURCE_DIR}/tools)
 
-SET( ATC_TRAKSTAR_BASE_DIR ${PLUSLIB_TOOLS_DIR}/Ascension/trakSTAR_940038_RevD)
+SET( ATC_TRAKSTAR_BASE_DIR ${PLUSLIB_TOOLS_DIR}/Ascension/trakSTAR_940041_RevE)
 SET( ATC_TRAKSTAR_INCLUDE_DIR ${ATC_TRAKSTAR_BASE_DIR}/inc CACHE PATH "Path to the Ascension trakSTAR 3D Guidance include folder (where the ATC3DG.h file is located)" FORCE )
 SET( ATC_TRAKSTAR_LIB_DIR ${ATC_TRAKSTAR_BASE_DIR}/lib CACHE PATH "Path to the Ascension trakSTAR 3D Guidance lib folder" FORCE )
 SET( ATC_TRAKSTAR_BINARY_DIR ${ATC_TRAKSTAR_BASE_DIR}/bin CACHE PATH "Path to the Ascension trakSTAR 3D Guidance dll folder" FORCE ) 

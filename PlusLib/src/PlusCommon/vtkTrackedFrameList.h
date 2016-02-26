@@ -39,11 +39,6 @@ class vtkPlusCommonExport vtkTrackedFrameList : public vtkObject
 public:
   typedef std::deque<TrackedFrame*> TrackedFrameListType; 
   typedef std::map<std::string,std::string> FieldMapType; 
-  enum SEQ_METAFILE_EXTENSION
-  {
-    SEQ_METAFILE_MHA, 
-    SEQ_METAFILE_MHD
-  }; 
 
   static vtkTrackedFrameList *New();
   vtkTypeMacro(vtkTrackedFrameList, vtkObject);
@@ -77,10 +72,18 @@ public:
   virtual unsigned int GetNumberOfTrackedFrames() { return this->TrackedFrameList.size(); } 
 
   /*! Save the tracked data to sequence metafile */
-  PlusStatus SaveToSequenceMetafile(const char* filename, bool useCompression = true, bool removeImageData = false);
+  PlusStatus SaveToSequenceMetafile(const std::string& filename, US_IMAGE_ORIENTATION orientationInFile=US_IMG_ORIENT_MF, bool useCompression = true, bool enableImageDataWrite = true);
 
   /*! Read the tracked data from sequence metafile */
-  virtual PlusStatus ReadFromSequenceMetafile(const char* trackedSequenceDataFileName); 
+  virtual PlusStatus ReadFromSequenceMetafile(const std::string& trackedSequenceDataFileName);
+
+#if VTK_MAJOR_VERSION > 5
+  /*! Save the tracked data to Nrrd file */
+  PlusStatus SaveToNrrdFile(const std::string& filename, US_IMAGE_ORIENTATION orientationInFile=US_IMG_ORIENT_MF, bool useCompression = true, bool enableImageDataWrite = true);
+
+  /*! Read the tracked data from Nrrd file */
+  virtual PlusStatus ReadFromNrrdFile(const std::string& trackedSequenceDataFileName);
+#endif
 
   /*! Get the tracked frame list */
   TrackedFrameListType GetTrackedFrameList() { return this->TrackedFrameList; }
@@ -170,7 +173,10 @@ public:
   US_IMAGE_ORIENTATION GetImageOrientation(); 
 
   /*! Get tracked frame image type */
-  US_IMAGE_TYPE GetImageType(); 
+  US_IMAGE_TYPE GetImageType();
+
+  /*! Get tracked frame image size*/
+  int* GetFrameSize();
 
   /*! Get the value of the custom field. If we couldn't find it, return NULL */
   virtual const char* GetCustomString( const char* fieldName ); 
@@ -226,10 +232,6 @@ protected:
     \sa TrackedFrameValidationRequirements 
   */
   virtual bool ValidateData(TrackedFrame* trackedFrame); 
-
-  /*! Helper class for saving to sequence metafile */
-  template <class OutputPixelType>
-  PlusStatus SaveToSequenceMetafileGeneric(const char* outputFolder, const char* sequenceDataFileName, SEQ_METAFILE_EXTENSION extension = SEQ_METAFILE_MHA, bool useCompression = true);
 
   bool ValidateTimestamp(TrackedFrame* trackedFrame); 
   bool ValidateTransform(TrackedFrame* trackedFrame); 

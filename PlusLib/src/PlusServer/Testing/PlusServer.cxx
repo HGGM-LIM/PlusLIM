@@ -110,6 +110,7 @@ int main( int argc, char** argv )
   PlusCommon::PrintXML(xmlFileContents, vtkIndent(1), configRootElement);
   LOG_DEBUG("Device set configuration file contents: " << std::endl << xmlFileContents.str());
 
+  LOG_INFO( "Server status: Reading configuration.");
   // Create data collector instance 
   vtkSmartPointer<vtkDataCollector> dataCollector = vtkSmartPointer<vtkDataCollector>::New();
   if ( dataCollector->ReadConfiguration( configRootElement ) != PLUS_SUCCESS )
@@ -126,7 +127,7 @@ int main( int argc, char** argv )
     return PLUS_FAIL;
   }
 
-  LOG_DEBUG( "Initializing data collector... " );
+  LOG_INFO( "Server status: Connecting to devices.");
   if ( dataCollector->Connect() != PLUS_SUCCESS )
   {
     LOG_ERROR("Datacollector failed to connect to devices"); 
@@ -139,7 +140,9 @@ int main( int argc, char** argv )
     return PLUS_FAIL;
   }
 
+  LOG_INFO( "Server status: Starting servers.");
   std::vector<vtkPlusOpenIGTLinkServer*> serverList;
+  int serverCount(0);
   for( int i = 0; i < configRootElement->GetNumberOfNestedElements(); ++i )
   {
     vtkXMLDataElement* serverElement = configRootElement->GetNestedElement(i);
@@ -147,6 +150,8 @@ int main( int argc, char** argv )
     {
       continue;
     }
+
+    serverCount++;
 
     // This is a PlusServer tag, let's create it
     vtkSmartPointer<vtkPlusOpenIGTLinkServer> server = vtkSmartPointer<vtkPlusOpenIGTLinkServer>::New();
@@ -158,6 +163,11 @@ int main( int argc, char** argv )
       exit(EXIT_FAILURE);
     }
     serverList.push_back(server);
+  }
+  if( serverCount == 0 )
+  {
+    LOG_ERROR("No vtkPlusOpenIGTLinkServer tags were found in the configuration file. Please add at least one.");
+    exit(EXIT_FAILURE);
   }
 
   double startTime = vtkAccurateTimer::GetSystemTime(); 
@@ -189,7 +199,7 @@ int main( int argc, char** argv )
     LOG_INFO("Clients are connected");
   }
   // *************************** End of testing **************************
-
+  LOG_INFO("Server status: Server(s) are running.");
   LOG_INFO("Press Ctrl-C to quit.");
 
   // Set up signal catching
