@@ -8,17 +8,8 @@ In, for example, Git Bash run the command:
 
     git clone https://github.com/HGGM-LIM/PlusLIM/
     
-This command will create the PlusLIM folder containing PlusBuild, PlusApp and PlusLib, as well as LIM related additions. Check line terminator of, for example, README.md (use Notepad++). If line terminator is CRLF, delete PlusLIM folder, go to Git Bash and, before cloning PlusLIM again, run this command to fix line terminators to LF:
-
-    git config --global core.autocrlf false
+This command will create the PlusLIM folder containing PlusBuild, PlusApp and PlusLib, as well as LIM related additions. 
 
 Before generating the build files using CMake, set **PATH**/PlusLIM/PlusBuild as your source directory and **PATH**/PlusLIM as your build directory. After these parameters are set you can decide on which devices to use (e.g., ConoProbe, OptiTrack, etc). 
 
-**OBS1!** Because of compatibility issues with older C++ standards it is advised to use a newer Visual Studio version, e.g. VS2013. In case you decide on using VS2013 you must download the pre-compiled Qt binaries from here: http://sourceforge.net/projects/qt64ng/files/qt/x86-64/4.8.5/msvc2013/
-
-**OBS2!** There seems to be some issue building both Release and Debug in the same build folder; therefore, it is advisable to have one complete Release build and one complete Debug build.
-
-## TODO
-
-* Make compatible with VS2008
-* Make sure it is possible to build both Release and Debug in the same build folder.
+Visual Studio version, e.g. VS2013. In case you decide on using VS2013 you must download the pre-compiled Qt binaries from here: http://www.npcglib.org/~stathis/blog/precompiled-qt4-qt5/
